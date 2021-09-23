@@ -1,0 +1,27 @@
+{
+    "name": "bongo-books",
+    "version": "1.0.0",
+    "description": "an awesome bookstore",
+    "main": "app.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "nodemon app.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/lullabyX/bongo-books.git"
+    },
+    "author": "Hassan Rabbi",
+    "license": "GPL-3.0-or-later",
+    "bugs": {
+        "url": "https://github.com/lullabyX/bongo-books/issues"
+    },
+    "homepage": "https://github.com/lullabyX/bongo-books#readme",
+    "devDependencies": {
+        "nodemon": "^2.0.12"
+    },
+    "dependencies": {
+        "ejs": "^3.1.6",
+        "express": "^4.17.1"
+    }
+}
