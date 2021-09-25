@@ -9,6 +9,8 @@ const sequelize = require('./util/database');
 
 const Book = require('./models/book');
 const User = require('./models/user');
+const Cart = require('./models/cart');
+const {user} = require('pg/lib/defaults');
 
 app.use(express.urlencoded({extended: false}));
 
@@ -33,11 +35,15 @@ app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 
 app.use((req, res, next) => {
-    res.render('404');
+    res.status(404).render('404');
 });
 
 Book.belongsTo(User, {constraints: true, oneDelete: 'CASCADE'});
 User.hasMany(Book);
+Cart.belongsTo(User, {constraints: true, oneDelete: 'CASCADE'});
+User.hasOne(Cart);
+Cart.belongsToMany(Book, {through: 'cart-items'});
+Book.belongsToMany(Cart, {through: 'cart-items'});
 
 sequelize
     //.sync({force: true})
@@ -55,6 +61,13 @@ sequelize
             });
         };
         return user;
+    })
+    .then(async user => {
+        const cart = await user.getCart();
+        if (!cart) {
+            return user.createCart();
+        };
+        return cart;
     })
     .then(result => {
         app.listen(8080);
