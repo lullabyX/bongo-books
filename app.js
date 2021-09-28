@@ -1,9 +1,10 @@
 const express = require('express');
-
-const app = express();
+const session = require('express-session');
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 const shopRoutes = require('./routes/shop');
-const adminRoutes = require('./routes/admin')
+const adminRoutes = require('./routes/admin');
+const authRoutes = require('./routes/auth');
 
 const sequelize = require('./util/database');
 
@@ -14,26 +15,44 @@ const Order = require('./models/order');
 const CartItem = require('./models/cart-item');
 const OrderItem = require('./models/order-item');
 
+const app = express();
+
 app.use(express.urlencoded({extended: false}));
+
+app.use(
+    session({
+        secret: 'super secret key',
+        store: new SequelizeStore({
+            db: sequelize,
+        }),
+        resave: false,
+        saveUninitialized: false,
+    }));
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
 app.use((req, res, next) => {
-    User.findByPk(1)
-        .then(user => {
-            return req.user = user;
-        })
-        .then(result => {
-            next();
-        })
-        .catch(err => {
-            console.log(err);
-        });
-})
+    if (!req.session.user) {
+        return next();
+    } else {
+        User.findByPk(req.session.user.id)
+            .then(user => {
+                if (!user) {
+                    next();
+                }
+                req.user = user;
+                next();
+            })
+            .catch(err => {
+                console.log(err);
+            });
+    };
+});
 
 
 app.use('/admin', adminRoutes);
+app.use(authRoutes);
 app.use(shopRoutes);
 
 app.use((req, res, next) => {
@@ -52,29 +71,8 @@ Order.belongsToMany(Book, {through: OrderItem});
 Book.belongsToMany(Order, {through: OrderItem});
 
 sequelize
-    .sync({force: true})
-    //.sync()
-    .then(result => {
-        return User.findByPk(1);
-    })
-    .then(user => {
-        if (!user) {
-            return User.create({
-                name: "dum",
-                email: "dum@test.com",
-                password: "password",
-
-            });
-        };
-        return user;
-    })
-    .then(async user => {
-        const cart = await user.getCart();
-        if (!cart) {
-            return user.createCart();
-        };
-        return cart;
-    })
+    //.sync({force: true})
+    .sync()
     .then(result => {
         app.listen(8080);
     })

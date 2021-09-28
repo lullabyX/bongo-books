@@ -114,7 +114,12 @@ exports.postDeleteBook = async (req, res, next) => {
     const bookId = req.body.bookId;
 
     try {
-        const book = await Book.findByPk(bookId);
+        const book = await Book.findOne({
+            where: {
+                id: bookId,
+                userId: req.user.id,
+            }
+        });
         if (!book) {
             res.status(404).redirect('/admin/books');
         } else {
