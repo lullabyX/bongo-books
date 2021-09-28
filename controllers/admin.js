@@ -111,7 +111,7 @@ exports.postEditBook = async (req, res, next) => {
 };
 
 exports.postDeleteBook = async (req, res, next) => {
-    const bookId = req.body.id;
+    const bookId = req.body.bookId;
 
     try {
         const book = await Book.findByPk(bookId);

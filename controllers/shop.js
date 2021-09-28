@@ -56,8 +56,8 @@ exports.getCart = async (req, res, next) => {
 };
 
 exports.postCart = async (req, res, next) => {
-    const bookId = req.body.id;
-    const newQty = 1;
+    const bookId = req.body.bookId;
+    let newQty = 1;
     try {
         const cart = await req.user.getCart();
         const books = await cart.getBooks({where: {id: bookId}});
@@ -75,4 +75,46 @@ exports.postCart = async (req, res, next) => {
     } catch (err) {
         console.log(err);
     };
-}
+};
+
+exports.postCartDeleteItem = async (req, res, next) => {
+    const bookId = req.body.bookId;
+
+    try {
+        const cart = await req.user.getCart();
+        const books = await cart.getBooks({where: {id: bookId}});
+        let book = books[0];
+        await book.cartItem.destroy();
+        res.status(202).redirect('/cart');
+    } catch (err) {
+        console.log(err);
+    }
+};
+
+exports.getOrders = async (req, res, next) => {
+    try {
+        const orders = await req.user.getOrders({include: Book});
+
+        res.status(200).render('shop/orders', {
+            orders: orders,
+        });
+    } catch (err) {
+        console.log(err);
+    };
+};
+
+exports.postOrder = async (req, res, next) => {
+    try {
+        const cart = await req.user.getCart();
+        const books = await cart.getBooks();
+        const order = await req.user.createOrder();
+        await order.addBook(books.map(book => {
+            book.orderItem = {quantity: book.cartItem.quantity};
+            return book;
+        }));
+        await cart.setBooks(null);
+        res.status(202).redirect('/orders');
+    } catch (err) {
+        console.log(err);
+    };
+};

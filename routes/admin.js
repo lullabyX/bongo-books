@@ -7,10 +7,10 @@ const adminController = require('../controllers/admin')
 //GET -> /admin/books shows listed items by that user
 router.get('/books', adminController.getBooks);
 
-//GET -> /admin/add-book gets the add-product page
+//GET -> /admin/add-book gets the add-book page
 router.get('/add-book', adminController.getAddBook);
 
-//POST -> /admin/add-book posts a product under the user
+//POST -> /admin/add-book posts a book under the user
 router.post('/add-book', adminController.postAddBook);
 
 //GET -> /admin/edit-book gets the edit-book page

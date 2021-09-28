@@ -10,7 +10,9 @@ const sequelize = require('./util/database');
 const Book = require('./models/book');
 const User = require('./models/user');
 const Cart = require('./models/cart');
-const {user} = require('pg/lib/defaults');
+const Order = require('./models/order');
+const CartItem = require('./models/cart-item');
+const OrderItem = require('./models/order-item');
 
 app.use(express.urlencoded({extended: false}));
 
@@ -42,12 +44,16 @@ Book.belongsTo(User, {constraints: true, oneDelete: 'CASCADE'});
 User.hasMany(Book);
 Cart.belongsTo(User, {constraints: true, oneDelete: 'CASCADE'});
 User.hasOne(Cart);
-Cart.belongsToMany(Book, {through: 'cart-items'});
-Book.belongsToMany(Cart, {through: 'cart-items'});
+Cart.belongsToMany(Book, {through: CartItem});
+Book.belongsToMany(Cart, {through: CartItem});
+Order.belongsTo(User);
+User.hasMany(Order);
+Order.belongsToMany(Book, {through: OrderItem});
+Book.belongsToMany(Order, {through: OrderItem});
 
 sequelize
-    //.sync({force: true})
-    .sync()
+    .sync({force: true})
+    //.sync()
     .then(result => {
         return User.findByPk(1);
     })
