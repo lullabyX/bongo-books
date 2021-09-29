@@ -22,7 +22,9 @@ const User = sequelize.define('users', {
     },
     contactId: {
         type: Sequelize.INTEGER,
-    }
+    },
+    resetToken: Sequelize.STRING,
+    resetTokenTimeout: Sequelize.DATE,
 });
 
 module.exports = User;

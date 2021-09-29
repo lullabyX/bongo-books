@@ -1,6 +1,7 @@
 const express = require('express');
 
 const authController = require('../controllers/auth');
+const isAuth = require('../middleware/isAuth');
 
 const router = express.Router();
 
@@ -17,6 +18,18 @@ router.get('/signup', authController.getSignup);
 router.post('/signup', authController.postSignup);
 
 // POST -> /logout
-router.post('/logout', authController.postSignout);
+router.post('/logout', isAuth, authController.postSignout);
+
+// GET -> /reset
+router.get('/reset', authController.getPasswordReset);
+
+// POST -> /reset
+router.post('/reset', authController.postPasswordReset);
+
+// GET -> /reset/:token
+router.get('/reset/:token', authController.getResetNow);
+
+// POST -> /reset-now
+router.post('/reset-now', authController.postResetNow);
 
 module.exports = router;

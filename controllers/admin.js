@@ -33,10 +33,8 @@ exports.postAddBook = async (req, res, next) => {
     const authorId = req.body.authorId;
     const description = req.body.description;
 
-    console.log(title);
-
     try {
-        const result = await req.user.createBook({
+        await req.user.createBook({
             title: title,
             imageUrl: imageUrl,
             price: price,
@@ -54,11 +52,14 @@ exports.getEditBook = async (req, res, next) => {
     const editing = req.query.edit;
     const bookId = req.params.bookId;
 
-    console.log(bookId);
-
     if (editing) {
         try {
-            const book = await Book.findByPk(bookId);
+            const book = await Book.findOne({
+                where: {
+                    id: bookId,
+                    userId: req.user.id,
+                }
+            });
             if (book) {
                 res.status(200).render('admin/edit-book', {
                     book: book,
@@ -66,6 +67,8 @@ exports.getEditBook = async (req, res, next) => {
                     path: '/admin/edit-book',
                 });
             } else {
+                req.flash('error', 'Unauthorized!')
+                await req.session.save();
                 res.status(404).redirect('/');
             }
 
@@ -89,7 +92,12 @@ exports.postEditBook = async (req, res, next) => {
     const updatedDescription = req.body.description;
 
     try {
-        const book = await Book.findByPk(bookId);
+        const book = await Book.findOne({
+            where: {
+                id: bookId,
+                userId: req.user.id,
+            }
+        });
 
         if (book) {
             book.title = updatedTitle;
@@ -102,6 +110,8 @@ exports.postEditBook = async (req, res, next) => {
             await book.save();
             res.status(202).redirect('/admin/books');
         } else {
+            req.flash('error', 'Unauthorized!')
+            await req.session.save();
             res.status(404).redirect('/admin/books');
         };
 
@@ -121,6 +131,8 @@ exports.postDeleteBook = async (req, res, next) => {
             }
         });
         if (!book) {
+            req.flash('error', 'Unauthorized!')
+            await req.session.save();
             res.status(404).redirect('/admin/books');
         } else {
             await book.destroy();

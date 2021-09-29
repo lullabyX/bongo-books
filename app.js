@@ -1,6 +1,8 @@
 const express = require('express');
 const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
+const csurf = require('csurf');
+const flash = require('connect-flash');
 
 const shopRoutes = require('./routes/shop');
 const adminRoutes = require('./routes/admin');
@@ -15,7 +17,11 @@ const Order = require('./models/order');
 const CartItem = require('./models/cart-item');
 const OrderItem = require('./models/order-item');
 
+const locals = require('./middleware/locals');
+
 const app = express();
+
+// const csrfProtection = csurf(); //uncomment for csrf protection, needs csrf token in every view
 
 app.use(express.urlencoded({extended: false}));
 
@@ -28,6 +34,9 @@ app.use(
         resave: false,
         saveUninitialized: false,
     }));
+
+// app.use(csrfProtection); //uncomment for csrf
+app.use(flash());
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -50,6 +59,7 @@ app.use((req, res, next) => {
     };
 });
 
+app.use(locals);
 
 app.use('/admin', adminRoutes);
 app.use(authRoutes);
