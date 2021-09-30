@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const {Op} = require('sequelize');
 
 const User = require('../models/user');
+const PendingUser = require('../models/pending-user');
 const config = require('../config'); // create a config.js file in root folder containing obeject
 // with your SendInBlue api key as "SIB_API_KEY" and export here
 
@@ -14,6 +15,7 @@ apiKey.apiKey = config.SIB_API_KEY;
 
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
+let emailVerification = new SibApiV3Sdk.SendSmtpEmail();
 let confirmationEmail = new SibApiV3Sdk.SendSmtpEmail();
 let passwordResetEmail = new SibApiV3Sdk.SendSmtpEmail();
 
@@ -75,32 +77,98 @@ exports.postSignup = async (req, res, next) => {
             await req.session.save();
             return res.status(422).redirect('/login');
         }
+
         const hashedPassword = await bcrypt.hash(password, 12);
-        const user = await User.create({
-            name: name,
-            email: email,
-            password: hashedPassword,
-        });
-        await user.createCart();
+        const buffer = await crypto.randomBytes(32);
+        const token = buffer.toString('hex');
+        const pendingUser = await PendingUser.findOne({where: {email: email}});
+
+        if (!pendingUser) {
+            await PendingUser.create({
+                name: name,
+                email: email,
+                password: hashedPassword,
+                token: token,
+                tokenTimeout: Date.now() + 3600000,
+            });
+        } else {
+            alreadyPending.token = token;
+            alreadyPending.tokenTimeout = Date.now() + 36;
+            await pendingUser.save();
+        }
+
+        req.flash('success', 'Verification link sent to email!');
         await req.session.save();
-        res.status(202).redirect('/');
-        confirmationEmail = {
+        res.status(202).redirect('/signup');
+        emailVerification = {
             to: [{
                 email: email,
                 name: name,
             }],
-            templateId: 2,
+            templateId: 4,
             params: {
                 FULLNAME: name,
+                TOKEN: 'http://localhost:8080/verification/' + token,
+                EMAIL: email,
+                BONGOBOOKSURL: 'http://localhost:8080',
             },
         };
-        const data = await apiInstance.sendTransacEmail(confirmationEmail);
+        const data = await apiInstance.sendTransacEmail(emailVerification);
         console.log('Confirmation Sent! Returned data ' + JSON.stringify(data));
 
     } catch (err) {
         console.log(err);
     }
 };
+
+exports.getVerification = async (req, res, next) => {
+    const token = req.params.token;
+    try {
+        const pendingUser = await PendingUser.findOne({
+            where: {
+                token: token,
+                tokenTimeout: {
+                    [Op.gt]: Date.now(),
+                },
+            }
+        });
+        if (!pendingUser) {
+            req.flash('error', 'Invalid request or reset link has expired');
+            await req.session.save();
+            return res.status(401).redirect('/signup');
+        }
+        const user = await User.create({
+            name: pendingUser.name,
+            email: pendingUser.email,
+            password: pendingUser.password,
+        });
+        await pendingUser.destroy();
+        await user.createCart();
+
+        req.flash('success', 'Email Verified!');
+        await req.session.save();
+        res.status(202).redirect('/login');
+        console.log(user.email);
+
+        confirmationEmail = {
+            to: [{
+                email: user.email,
+                name: user.name,
+            }],
+            templateId: 5,
+            params: {
+                FULLNAME: user.name,
+                EMAIL: user.email,
+                LOGIN: 'http://localhost:8080/login',
+                BONGOBOOKSURL: 'http://localhost:8080',
+            },
+        };
+        const data = await apiInstance.sendTransacEmail(confirmationEmail);
+        console.log('Confirmation Sent! Returned data ' + JSON.stringify(data));
+    } catch (err) {
+        console.log(err);
+    }
+}
 
 exports.postSignout = async (req, res, next) => {
     try {
@@ -149,6 +217,8 @@ exports.postPasswordReset = async (req, res, next) => {
             params: {
                 FULLNAME: user.name,
                 TOKEN: 'http://localhost:8080/reset/' + token,
+                BONGOBOOKSURL: 'http://localhost:8080',
+                EMAIL: user.email,
             },
         };
         const data = await apiInstance.sendTransacEmail(passwordResetEmail);

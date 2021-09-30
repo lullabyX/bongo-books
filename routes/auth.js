@@ -17,6 +17,9 @@ router.get('/signup', authController.getSignup);
 // POST -> /signup
 router.post('/signup', authController.postSignup);
 
+// GET -> /verification
+router.get('/verification/:token', authController.getVerification);
+
 // POST -> /logout
 router.post('/logout', isAuth, authController.postSignout);
 
