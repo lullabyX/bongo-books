@@ -23,4 +23,14 @@ router.post('/edit-book', isAuth, adminController.postEditBook)
 //POST -> /admin/delete-book deletes a book NOTE: bookId as "id" should be passed in body
 router.post('/delete-book', isAuth, adminController.postDeleteBook);
 
+//POST -> /admin/add-author
+router.post('/add-author', adminController.postAuthor);
+
+//POST -> /admin/add-publication
+router.post('/add-publication', adminController.postPublication);
+
+//POST -> /admin/add-genre
+router.post('/add-genre', adminController.postGenre);
+
+
 module.exports = router;

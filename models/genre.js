@@ -1,35 +1,26 @@
 const Sequelize = require('sequelize');
+
 const sequelize = require('../util/database');
 
-const Book = sequelize.define('books', {
+const Genre = sequelize.define('genre', {
 	id: {
 		type: Sequelize.INTEGER,
 		autoIncrement: true,
 		primaryKey: true,
 		allowNull: false,
 	},
-	title: {
+	name: {
 		type: Sequelize.STRING,
 		allowNull: false,
 	},
 	imageUrl: {
 		type: Sequelize.STRING,
-		allowNull: false,
-	},
-	price: {
-		type: Sequelize.FLOAT,
-		allowNull: false,
-	},
-	ISBN: {
-		type: Sequelize.STRING,
 		allowNull: true,
 	},
 	description: {
 		type: Sequelize.TEXT,
-		allowNull: false,
+		allowNull: true,
 	},
-	publishDate: Sequelize.STRING,
-	language: Sequelize.STRING,
 });
 
-module.exports = Book;
+module.exports = Genre;
