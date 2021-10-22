@@ -35,12 +35,12 @@ exports.postLogin = async (req, res, next) => {
     try {
         const user = await User.findOne({where: {email: email}});
         if (!user) {
-            return res.status(422).redirect('/signup');
+            return res.status(422).redirect('/auth/signup');
         };
         const storedPassword = user.password;
         const doMatch = await bcrypt.compare(password, storedPassword);
         if (!doMatch) {
-            return res.status(404).redirect('/login');
+            return res.status(404).redirect('/auth/login');
         }
         req.session.user = user;
         req.session.isLoggedIn = true;

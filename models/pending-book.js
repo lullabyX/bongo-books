@@ -1,35 +1,35 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../util/database');
 
-const User = sequelize.define('users', {
+const PendingBook = sequelize.define('pendingBooks', {
 	id: {
 		type: Sequelize.INTEGER,
-		primaryKey: true,
 		autoIncrement: true,
+		primaryKey: true,
 		allowNull: false,
 	},
-	name: {
+	title: {
 		type: Sequelize.STRING,
 		allowNull: false,
 	},
-	email: {
+	imageUrl: {
 		type: Sequelize.STRING,
 		allowNull: false,
 	},
-	password: {
-		type: Sequelize.STRING,
+	price: {
+		type: Sequelize.FLOAT,
 		allowNull: false,
 	},
-	contactId: {
-		type: Sequelize.INTEGER,
-	},
-	userType: {
+	ISBN: {
 		type: Sequelize.STRING,
-		defaultValue: 'regular',
+		allowNull: true,
 	},
-	employeeId: Sequelize.STRING,
-	resetToken: Sequelize.STRING,
-	resetTokenTimeout: Sequelize.DATE,
+	description: {
+		type: Sequelize.TEXT,
+		allowNull: false,
+	},
+	publishDate: Sequelize.STRING,
+	language: Sequelize.STRING,
 });
 
-module.exports = User;
+module.exports = PendingBook;

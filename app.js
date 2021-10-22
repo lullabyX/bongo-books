@@ -7,6 +7,7 @@ const flash = require('connect-flash');
 const shopRoutes = require('./routes/shop');
 const adminRoutes = require('./routes/admin');
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
 
 const errorController = require('./controllers/error');
 
@@ -22,8 +23,11 @@ const Author = require('./models/author');
 const AuthorItem = require('./models/author-item');
 const Publication = require('./models/publication');
 const Genre = require('./models/genre');
+const PendingBook = require('./models/pending-book');
 
 const locals = require('./middleware/locals');
+const GenreItem = require('./models/genre-items');
+const Tag = require('./models/tag');
 
 const app = express();
 
@@ -69,16 +73,20 @@ app.use((req, res, next) => {
 app.use(locals);
 
 app.use('/admin', adminRoutes);
-app.use(authRoutes);
+app.use('/auth', authRoutes);
+app.use('/user', userRoutes);
 app.use(shopRoutes);
 
 app.use(errorController.notFound);
 app.use(errorController.errorHandler);
 
-Book.belongsTo(User, { constraints: true, oneDelete: 'CASCADE' });
+PendingBook.belongsTo(User, { constraints: true, oneDelete: 'CASCADE' });
+User.hasMany(PendingBook);
+
+Book.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 User.hasMany(Book);
 
-Cart.belongsTo(User, { constraints: true, oneDelete: 'CASCADE' });
+Cart.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 User.hasOne(Cart);
 
 Cart.belongsToMany(Book, { through: CartItem });
@@ -96,8 +104,11 @@ Author.belongsToMany(Book, { constraints: true, through: AuthorItem });
 Book.belongsTo(Publication, { constraints: true });
 Publication.hasMany(Book);
 
-Book.belongsTo(Genre, { constraints: true });
-Genre.hasMany(Book);
+Book.belongsToMany(Genre, { constraints: true, through: GenreItem });
+Genre.belongsToMany(Book, { constraints: true, through: GenreItem });
+
+Tag.belongsTo(Book);
+Book.hasMany(Tag);
 
 sequelize
 	// .sync({ force: true })

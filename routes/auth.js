@@ -5,31 +5,31 @@ const isAuth = require('../middleware/isAuth');
 
 const router = express.Router();
 
-// GET -> /login
+// GET -> /auth/login
 router.get('/login', authController.getLogin);
 
-// POST -> /login
+// POST -> /auth/login
 router.post('/login', authController.postLogin);
 
-// GET -> /signup
+// GET -> /auth/signup
 router.get('/signup', authController.getSignup);
 
-// POST -> /signup
+// POST -> /auth/signup
 router.post('/signup', authController.postSignup);
 
-// POST -> /logout
+// POST -> /auth/logout
 router.post('/logout', isAuth, authController.postSignout);
 
-// GET -> /reset
+// GET -> /auth/reset
 router.get('/reset', authController.getPasswordReset);
 
-// POST -> /reset
+// POST -> /auth/reset
 router.post('/reset', authController.postPasswordReset);
 
-// GET -> /reset/:token
+// GET -> /auth/reset/:token
 router.get('/reset/:token', authController.getResetNow);
 
-// POST -> /reset-now
+// POST -> /auth/reset-now
 router.post('/reset-now', authController.postResetNow);
 
 module.exports = router;
