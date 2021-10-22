@@ -1,3 +1,5 @@
+const {validationResult} = require('express-validator');
+
 const Book = require('../models/book');
 const PendingBook = require('../models/pending-book');
 
@@ -12,7 +14,10 @@ exports.getCart = async (req, res, next) => {
 			path: '/user/cart',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -34,7 +39,10 @@ exports.postCart = async (req, res, next) => {
 		});
 		res.status(202).redirect('user/cart');
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -48,7 +56,10 @@ exports.postCartDeleteItem = async (req, res, next) => {
 		await book.cartItem.destroy();
 		res.status(202).redirect('user/cart');
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -62,7 +73,10 @@ exports.getOrders = async (req, res, next) => {
 			orders: orders,
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -80,7 +94,10 @@ exports.postOrder = async (req, res, next) => {
 		await cart.setBooks(null);
 		res.status(202).redirect('user/orders');
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -91,7 +108,10 @@ exports.getAddBook = async (req, res, next) => {
 			path: '/user/add-book',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -103,6 +123,13 @@ exports.postAddBook = async (req, res, next) => {
 	const publicationName = req.body.publicationName;
 	const description = req.body.description;
 
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return res.status(422).json({
+			message: errors.array(),
+		});
+	}
+	
 	try {
 		const pendingBook = await req.user.createPendingBook({
 			title: title,
@@ -114,7 +141,10 @@ exports.postAddBook = async (req, res, next) => {
 		});
 		res.status(202).redirect('/');
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -142,7 +172,10 @@ exports.getEditBook = async (req, res, next) => {
 				res.status(404).redirect('/');
 			}
 		} catch (err) {
-			console.log(err);
+			if (!err.statusCode) {
+				err.statusCode = 500;
+			}
+			next(err);
 		}
 	} else {
 		res.redirect('/');
@@ -155,6 +188,13 @@ exports.postEditBook = async (req, res, next) => {
 	const updatedPrice = req.body.price;
 	const updatedDescription = req.body.description;
 
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return res.status(422).json({
+			message: errors.array(),
+		});
+	}
+	
 	try {
 		const book = await Book.findOne({
 			where: {
@@ -176,7 +216,10 @@ exports.postEditBook = async (req, res, next) => {
 			res.status(404).redirect('/admin/books');
 		}
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -199,7 +242,10 @@ exports.postDeleteBook = async (req, res, next) => {
 			res.status(200).redirect('/user/books');
 		}
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -213,7 +259,10 @@ exports.getPendingBooks = async (req, res, next) =>
 			path: '/user/pending-books',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 }
 
@@ -236,6 +285,9 @@ exports.postDeletePendingBook = async (req, res, next) => {
 			res.status(200).redirect('/user/pending-books');
 		}
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };

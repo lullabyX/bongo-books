@@ -1,3 +1,5 @@
+const { validationResult } = require('express-validator');
+
 const Book = require('../models/book');
 const Author = require('../models/author');
 const Publication = require('../models/publication');
@@ -17,7 +19,10 @@ exports.getBooks = async (req, res, next) => {
 			path: '/admin/books',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -28,7 +33,10 @@ exports.getAddBook = async (req, res, next) => {
 			path: '/admin/add-book',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -45,19 +53,25 @@ exports.postAddBook = async (req, res, next) => {
 	const publishDate = req.body.publishDate;
 	const language = req.body.language;
 
-	const authorsArray = await authorsString.split(',').map((author) => {
-		return author.trim();
-	});
-
-	const tagsArray = await tagsString.split(',').map((tag) => {
-		return tag.trim();
-	});
-
-	const genresArray = await genresString.split(',').map((genre) => {
-		return genre.trim();
-	});
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return res.status(422).json({
+			message: errors.array(),
+		});
+	}
 
 	try {
+		const authorsArray = await authorsString.split(',').map((author) => {
+			return author.trim();
+		});
+
+		const tagsArray = await tagsString.split(',').map((tag) => {
+			return tag.trim();
+		});
+
+		const genresArray = await genresString.split(',').map((genre) => {
+			return genre.trim();
+		});
 		let authors = [];
 		let genres = [];
 		// add authors
@@ -117,8 +131,13 @@ exports.postAddBook = async (req, res, next) => {
 				name: tag,
 			});
 		});
+
+		res.status(201).redirect('admin/books');
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -131,7 +150,10 @@ exports.getPendingBooks = async (req, res, next) => {
 			path: '/admin/pending-books',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -150,7 +172,10 @@ exports.getPendingBook = async (req, res, next) => {
 			path: '/admin/pending-book',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -166,19 +191,25 @@ exports.postVerifyPendingBooks = async (req, res, next) => {
 	const tagsString = req.body.tags;
 	const genresString = req.body.genres;
 
-	const authorsArray = await authorsString.split(',').map((author) => {
-		return author.trim();
-	});
-
-	const genresArray = await genresString.split(',').map((genre) => {
-		return genre.trim();
-	});
-
-	const tagsArray = await tagsString.split(',').map((tag) => {
-		return tag.trim();
-	});
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return res.status(422).json({
+			message: errors.array(),
+		});
+	}
 
 	try {
+		const authorsArray = await authorsString.split(',').map((author) => {
+			return author.trim();
+		});
+
+		const genresArray = await genresString.split(',').map((genre) => {
+			return genre.trim();
+		});
+
+		const tagsArray = await tagsString.split(',').map((tag) => {
+			return tag.trim();
+		});
 		let authors = [];
 		let genres = [];
 		// add authos
@@ -249,7 +280,10 @@ exports.postVerifyPendingBooks = async (req, res, next) => {
 		// 	message: 'success',
 		// });
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -267,7 +301,10 @@ exports.postDeletePendingBook = async (req, res, next) => {
 			res.status(200).redirect('/admin/pending-books');
 		}
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -281,8 +318,10 @@ exports.getEditBook = async (req, res, next) => {
 				where: {
 					id: bookId,
 				},
+				include: [Tag, Author, Genre, Publication],
 			});
 			if (book) {
+				console.log(book);
 				res.status(200).render('admin/edit-book', {
 					book: book,
 					pageTitle: 'Editing ' + book.title,
@@ -291,13 +330,19 @@ exports.getEditBook = async (req, res, next) => {
 			} else {
 				req.flash('error', 'Unauthorized!');
 				await req.session.save();
-				res.status(404).redirect('/');
+				res.status(404).redirect('/admin/books');
 			}
 		} catch (err) {
-			console.log(err);
+			if (!err.statusCode) {
+				err.statusCode = 500;
+			}
+			next(err);
 		}
 	} else {
-		res.redirect('/');
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -314,6 +359,13 @@ exports.postEditBook = async (req, res, next) => {
 	const updatedTagsString = req.body.tags;
 	const updatedPublishDate = req.body.publishDate;
 	const updatedLanguage = req.body.language;
+
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return res.status(422).json({
+			message: errors.array(),
+		});
+	}
 
 	const authorsArray = await updatedAuthorsString.split(',').map((author) => {
 		return author.trim();
@@ -407,7 +459,10 @@ exports.postEditBook = async (req, res, next) => {
 			res.status(404).redirect('/admin/books');
 		}
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -429,7 +484,10 @@ exports.postDeleteBook = async (req, res, next) => {
 			res.status(200).redirect('/admin/books');
 		}
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -442,7 +500,10 @@ exports.getAuthors = async (req, res, next) => {
 			path: '/admin/authors',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -474,7 +535,10 @@ exports.postAuthor = async (req, res, next) => {
 			description: description,
 		});
 	} catch {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -504,7 +568,10 @@ exports.postEditAuthor = async (req, res, next) => {
 			description: description,
 		});
 	} catch {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -517,7 +584,10 @@ exports.getPublications = async (req, res, next) => {
 			path: '/admin/publication',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -550,7 +620,10 @@ exports.postPublication = async (req, res, next) => {
 			description: description,
 		});
 	} catch {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -581,7 +654,10 @@ exports.postEditPublication = async (req, res, next) => {
 			description: description,
 		});
 	} catch {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -594,7 +670,10 @@ exports.getGenres = async (req, res, next) => {
 			path: '/admin/genres',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -625,7 +704,10 @@ exports.postGenre = async (req, res, next) => {
 			description: description,
 		});
 	} catch {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -654,6 +736,9 @@ exports.postEditGenre = async (req, res, next) => {
 			description: description,
 		});
 	} catch {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };

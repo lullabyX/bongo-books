@@ -1,8 +1,9 @@
 const express = require('express');
+const { body } = require('express-validator');
 
 const router = express.Router();
 
-const userController = require('../controllers/user')
+const userController = require('../controllers/user');
 const isAuth = require('../middleware/isAuth');
 
 // GET -> /user/cart
@@ -24,13 +25,23 @@ router.post('/orders', isAuth, userController.postOrder);
 router.get('/add-book', isAuth, userController.getAddBook);
 
 // POST -> /user/add-book
-router.post('/add-book', isAuth, userController.postAddBook);
+router.post(
+	'/add-book',
+	[body('price').isFloat().withMessage('Price must be floating point')],
+	isAuth,
+	userController.postAddBook
+);
 
 // GET -> /user/edit-book
-router.get('/edit-book', isAuth, userController.getEditBook);
+router.get('/edit-book/:bookId', isAuth, userController.getEditBook);
 
 // POST -> /user/edit-book
-router.post('/edit-book', isAuth, userController.postEditBook);
+router.post(
+	'/edit-book',
+	[body('price').isFloat().withMessage('Price must be floating point')],
+	isAuth,
+	userController.postEditBook
+);
 
 // POST -> /user/delete-book
 router.post('/delete-book', isAuth, userController.postDeleteBook);

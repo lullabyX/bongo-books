@@ -1,4 +1,5 @@
 const express = require('express');
+const { body } = require('express-validator');
 
 const router = express.Router();
 
@@ -9,16 +10,31 @@ const isAdmin = require('../middleware/isAdmin');
 router.get('/books', isAdmin, adminController.getBooks);
 
 // GET -> /admin/add-book gets the add-book page
-router.get('/add-book', isAdmin, adminController.getAddBook);
+router.get(
+	'/add-book',
+	[body('price').isFloat().withMessage('Price must be floating point')],
+	isAdmin,
+	adminController.getAddBook
+);
 
 // POST -> /admin/add-book posts a book under the user
-router.post('/add-book', isAdmin, adminController.postAddBook);
+router.post(
+	'/add-book',
+	[body('price').isFloat().withMessage('Price must be floating point')],
+	isAdmin,
+	adminController.postAddBook
+);
 
 // GET -> /admin/edit-book gets the edit-book page
 router.get('/edit-book/:bookId', isAdmin, adminController.getEditBook);
 
 // POST -> /admin/edit-book posts the edited book NOTE: bookId as "id" should be passed in body
-router.post('/edit-book', isAdmin, adminController.postEditBook);
+router.post(
+	'/edit-book',
+	[body('price').isFloat().withMessage('Price must be floating point')],
+	isAdmin,
+	adminController.postEditBook
+);
 
 // POST -> /admin/delete-book deletes a book NOTE: bookId as "id" should be passed in body
 router.post('/delete-book', isAdmin, adminController.postDeleteBook);

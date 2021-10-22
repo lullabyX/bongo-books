@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
@@ -28,11 +29,14 @@ const PendingBook = require('./models/pending-book');
 const locals = require('./middleware/locals');
 const GenreItem = require('./models/genre-items');
 const Tag = require('./models/tag');
+const AddressBook = require('./models/address-book');
+const trimmer = require('./middleware/trimmer');
 
 const app = express();
 
 // const csrfProtection = csurf(); //uncomment for csrf protection, needs csrf token in every view
-
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use(express.urlencoded({ extended: false }));
 
 app.use(
@@ -70,8 +74,11 @@ app.use((req, res, next) => {
 	}
 });
 
+//middlewares
 app.use(locals);
+app.use(trimmer);
 
+//routes
 app.use('/admin', adminRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
@@ -79,6 +86,9 @@ app.use(shopRoutes);
 
 app.use(errorController.notFound);
 app.use(errorController.errorHandler);
+
+AddressBook.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
+User.hasMany(AddressBook);
 
 PendingBook.belongsTo(User, { constraints: true, oneDelete: 'CASCADE' });
 User.hasMany(PendingBook);

@@ -8,7 +8,7 @@ const User = sequelize.define('users', {
 		autoIncrement: true,
 		allowNull: false,
 	},
-	name: {
+	username: {
 		type: Sequelize.STRING,
 		allowNull: false,
 	},
@@ -20,13 +20,14 @@ const User = sequelize.define('users', {
 		type: Sequelize.STRING,
 		allowNull: false,
 	},
-	contactId: {
-		type: Sequelize.INTEGER,
-	},
 	userType: {
 		type: Sequelize.STRING,
 		defaultValue: 'regular',
 	},
+	primaryPhone: Sequelize.STRING,
+	avatar: Sequelize.STRING,
+	firstName: Sequelize.STRING,
+	lastName: Sequelize.STRING,
 	employeeId: Sequelize.STRING,
 	resetToken: Sequelize.STRING,
 	resetTokenTimeout: Sequelize.DATE,

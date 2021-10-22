@@ -9,7 +9,10 @@ exports.getIndex = async (req, res, next) => {
 			path: '/',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -22,7 +25,10 @@ exports.getBooks = async (req, res, next) => {
 			path: '/books',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 
@@ -36,6 +42,9 @@ exports.getBook = async (req, res, next) => {
 			path: '/books',
 		});
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
