@@ -1,7 +1,8 @@
-const {validationResult} = require('express-validator');
+const { validationResult } = require('express-validator');
 
 const Book = require('../models/book');
 const PendingBook = require('../models/pending-book');
+const { deleteFile } = require('../util/filehelper');
 
 exports.getCart = async (req, res, next) => {
 	try {
@@ -117,7 +118,7 @@ exports.getAddBook = async (req, res, next) => {
 
 exports.postAddBook = async (req, res, next) => {
 	const title = req.body.title;
-	const imageUrl = req.body.imageUrl;
+	const images = req.files;
 	const price = req.body.price;
 	const ISBN = req.body.ISBN;
 	const publicationName = req.body.publicationName;
@@ -125,22 +126,49 @@ exports.postAddBook = async (req, res, next) => {
 
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
+		if (images.length > 0) {
+			images.forEach((image) => {
+				deleteFile(image.path);
+			});
+		}
 		return res.status(422).json({
 			message: errors.array(),
 		});
 	}
-	
+
 	try {
 		const pendingBook = await req.user.createPendingBook({
 			title: title,
-			imageUrl: imageUrl,
 			price: price,
 			ISBN: ISBN,
 			description: description,
 			publicationName: publicationName,
 		});
+		images.forEach(async (image) => {
+			const source = path.join(__dirname, '../', image.path);
+			const imagePath = 'images/pending-book/' + pendingBook.id;
+			let dest = path.join(__dirname, '../', imagePath);
+
+			if (!fs.existsSync(dest)) {
+				fs.mkdirSync(dest);
+			}
+			dest = dest + '/' + image.filename;
+			await pendingBook.createPendingBookImage({
+				imageUrl: '/' + imagePath + '/' + image.filename,
+			});
+			fs.rename(source, dest, (err) => {
+				if (err) {
+					throw err;
+				}
+			});
+		});
 		res.status(202).redirect('/');
 	} catch (err) {
+		if (images.length > 0) {
+			images.forEach((image) => {
+				deleteFile(image.path);
+			});
+		}
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}
@@ -184,17 +212,22 @@ exports.getEditBook = async (req, res, next) => {
 
 exports.postEditBook = async (req, res, next) => {
 	const bookId = req.body.id;
-	const updatedImageUrl = req.body.imageUrl;
+	const updatedImages = req.files;
 	const updatedPrice = req.body.price;
 	const updatedDescription = req.body.description;
 
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
+		if (updatedImages.length > 0) {
+			updatedImages.forEach((image) => {
+				deleteFile(image.path);
+			});
+		}
 		return res.status(422).json({
 			message: errors.array(),
 		});
 	}
-	
+
 	try {
 		const book = await Book.findOne({
 			where: {
@@ -209,6 +242,31 @@ exports.postEditBook = async (req, res, next) => {
 			book.description = updatedDescription;
 
 			await book.save();
+			if (updatedImages.length > 0) {
+				const oldImagesPath = await book.getBookImages();
+				oldImagesPath.forEach((path) => {
+					deleteFile(path.imageUrl);
+				});
+				await book.setBookImages(null);
+				updatedImages.forEach(async (image) => {
+					const source = path.join(__dirname, '../', image.path);
+					const imagePath = 'images/book/' + book.id;
+					let dest = path.join(__dirname, '../', imagePath);
+
+					if (!fs.existsSync(dest)) {
+						fs.mkdirSync(dest);
+					}
+					dest = dest + '/' + image.filename;
+					await book.createBookImage({
+						imageUrl: '/' + imagePath + '/' + image.filename,
+					});
+					fs.rename(source, dest, (err) => {
+						if (err) {
+							throw err;
+						}
+					});
+				});
+			}
 			res.status(202).redirect('/admin/books');
 		} else {
 			req.flash('error', 'Unauthorized!');
@@ -216,6 +274,11 @@ exports.postEditBook = async (req, res, next) => {
 			res.status(404).redirect('/admin/books');
 		}
 	} catch (err) {
+		if (updatedImages.length > 0) {
+			updatedImages.forEach((image) => {
+				deleteFile(image.path);
+			});
+		}
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}
@@ -238,6 +301,13 @@ exports.postDeleteBook = async (req, res, next) => {
 			await req.session.save();
 			res.status(404).redirect('/user/books');
 		} else {
+			const bookImages = await book.getBookImages();
+			if (bookImages.length > 0) {
+				bookImages.forEach((image) => {
+					deleteFile(image.imageUrl);
+				});
+			}
+			await book.removeBookImages();
 			await book.destroy();
 			res.status(200).redirect('/user/books');
 		}
@@ -249,10 +319,11 @@ exports.postDeleteBook = async (req, res, next) => {
 	}
 };
 
-exports.getPendingBooks = async (req, res, next) =>
-{
-    try {
-		const pendingbooks = await PendingBook.findAll({ where: { userId: req.user.id } });
+exports.getPendingBooks = async (req, res, next) => {
+	try {
+		const pendingbooks = await PendingBook.findAll({
+			where: { userId: req.user.id },
+		});
 		res.status(200).render('user/pending-books', {
 			books: books,
 			pageTitle: 'Pending Books',
@@ -264,7 +335,7 @@ exports.getPendingBooks = async (req, res, next) =>
 		}
 		next(err);
 	}
-}
+};
 
 exports.postDeletePendingBook = async (req, res, next) => {
 	const bookId = req.body.pendingBookId;
@@ -280,7 +351,15 @@ exports.postDeletePendingBook = async (req, res, next) => {
 			req.flash('error', 'Unauthorized!');
 			await req.session.save();
 			res.status(404).redirect('/user/pending-books');
-		} else {
+		} else
+		{
+			const pendingBookImages = await pendingBook.getPendingBookImages();
+			if (pendingBookImages.length > 0) {
+				pendingBookImages.forEach((image) => {
+					deleteFile(image.imageUrl);
+				});
+			}
+			await pendingBook.removeBookImages();
 			await pendingBook.destroy();
 			res.status(200).redirect('/user/pending-books');
 		}

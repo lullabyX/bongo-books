@@ -4,6 +4,7 @@ const { body } = require('express-validator');
 const router = express.Router();
 
 const adminController = require('../controllers/admin');
+const uploadController = require('../controllers/upload');
 const isAdmin = require('../middleware/isAdmin');
 
 // GET -> /admin/books shows listed items by that user
@@ -20,8 +21,9 @@ router.get(
 // POST -> /admin/add-book posts a book under the user
 router.post(
 	'/add-book',
-	[body('price').isFloat().withMessage('Price must be floating point')],
+	// [body('price').isFloat().withMessage('Price must be floating point')],
 	isAdmin,
+	uploadController.multiple,
 	adminController.postAddBook
 );
 
@@ -31,8 +33,9 @@ router.get('/edit-book/:bookId', isAdmin, adminController.getEditBook);
 // POST -> /admin/edit-book posts the edited book NOTE: bookId as "id" should be passed in body
 router.post(
 	'/edit-book',
-	[body('price').isFloat().withMessage('Price must be floating point')],
+	// [body('price').isFloat().withMessage('Price must be floating point')],
 	isAdmin,
+	uploadController.multiple,
 	adminController.postEditBook
 );
 
@@ -43,28 +46,58 @@ router.post('/delete-book', isAdmin, adminController.postDeleteBook);
 router.get('/authors', isAdmin, adminController.getAuthors);
 
 // POST -> /admin/add-author
-router.post('/add-author', isAdmin, adminController.postAuthor);
+router.post(
+	'/add-author',
+	isAdmin,
+	uploadController.single,
+	adminController.postAuthor
+);
 
 // POST -> /admin/edit-genre
-router.post('/edit-author', isAdmin, adminController.postEditAuthor);
+router.post(
+	'/edit-author',
+	isAdmin,
+	uploadController.single,
+	adminController.postEditAuthor
+);
 
 // GET -> /admin/publications
 router.get('/publications', isAdmin, adminController.getPublications);
 
 // POST -> /admin/add-publication
-router.post('/add-publication', isAdmin, adminController.postPublication);
+router.post(
+	'/add-publication',
+	isAdmin,
+	uploadController.single,
+	adminController.postPublication
+);
 
 // POST -> /admin/edit-publication
-router.post('/edit-publication', isAdmin, adminController.postEditPublication);
+router.post(
+	'/edit-publication',
+	isAdmin,
+	uploadController.single,
+	adminController.postEditPublication
+);
 
 // GET -> /admin/genres
 router.get('/genres', isAdmin, adminController.getGenres);
 
 // POST -> /admin/add-genre
-router.post('/add-genre', isAdmin, adminController.postGenre);
+router.post(
+	'/add-genre',
+	isAdmin,
+	uploadController.single,
+	adminController.postGenre
+);
 
 // POST -> /admin/edit-genre
-router.post('/edit-genre', isAdmin, adminController.postEditGenre);
+router.post(
+	'/edit-genre',
+	isAdmin,
+	uploadController.single,
+	adminController.postEditGenre
+);
 
 // GET -> /admin/pending-books
 router.get('/pending-books', isAdmin, adminController.getPendingBooks);

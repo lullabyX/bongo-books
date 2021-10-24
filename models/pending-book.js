@@ -12,10 +12,6 @@ const PendingBook = sequelize.define('pendingBooks', {
 		type: Sequelize.STRING,
 		allowNull: false,
 	},
-	imageUrl: {
-		type: Sequelize.STRING,
-		allowNull: false,
-	},
 	price: {
 		type: Sequelize.FLOAT,
 		allowNull: false,

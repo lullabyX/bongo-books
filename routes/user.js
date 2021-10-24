@@ -4,6 +4,7 @@ const { body } = require('express-validator');
 const router = express.Router();
 
 const userController = require('../controllers/user');
+const uploadController = require('../controllers/upload');
 const isAuth = require('../middleware/isAuth');
 
 // GET -> /user/cart
@@ -29,6 +30,7 @@ router.post(
 	'/add-book',
 	[body('price').isFloat().withMessage('Price must be floating point')],
 	isAuth,
+	uploadController.multiple,
 	userController.postAddBook
 );
 
@@ -40,6 +42,7 @@ router.post(
 	'/edit-book',
 	[body('price').isFloat().withMessage('Price must be floating point')],
 	isAuth,
+	uploadController.multiple,
 	userController.postEditBook
 );
 

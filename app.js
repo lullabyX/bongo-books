@@ -31,13 +31,16 @@ const GenreItem = require('./models/genre-items');
 const Tag = require('./models/tag');
 const AddressBook = require('./models/address-book');
 const trimmer = require('./middleware/trimmer');
+const BookImage = require('./models/book-image');
+const PendingBookImage = require('./models/pending-book-image');
 
 const app = express();
 
 // const csrfProtection = csurf(); //uncomment for csrf protection, needs csrf token in every view
+
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/images', express.static(path.join(__dirname, 'images')));
-app.use(express.urlencoded({ extended: false }));
 
 app.use(
 	session({
@@ -119,6 +122,12 @@ Genre.belongsToMany(Book, { constraints: true, through: GenreItem });
 
 Tag.belongsTo(Book);
 Book.hasMany(Tag);
+
+BookImage.belongsTo(Book);
+Book.hasMany(BookImage);
+
+PendingBookImage.belongsTo(PendingBook);
+PendingBook.hasMany(PendingBookImage);
 
 sequelize
 	// .sync({ force: true })
