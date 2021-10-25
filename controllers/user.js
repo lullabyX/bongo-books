@@ -1,8 +1,10 @@
 const { validationResult } = require('express-validator');
 
+const User = require('../models/user');
 const Book = require('../models/book');
 const PendingBook = require('../models/pending-book');
 const { deleteFile } = require('../util/filehelper');
+const AddressBook = require('../models/address-book');
 
 exports.getCart = async (req, res, next) => {
 	try {
@@ -351,8 +353,7 @@ exports.postDeletePendingBook = async (req, res, next) => {
 			req.flash('error', 'Unauthorized!');
 			await req.session.save();
 			res.status(404).redirect('/user/pending-books');
-		} else
-		{
+		} else {
 			const pendingBookImages = await pendingBook.getPendingBookImages();
 			if (pendingBookImages.length > 0) {
 				pendingBookImages.forEach((image) => {
@@ -370,3 +371,192 @@ exports.postDeletePendingBook = async (req, res, next) => {
 		next(err);
 	}
 };
+
+exports.getProfile = async (req, res, next) => {
+	try {
+		const user = await User.findByPk(req.user.id);
+		if (!user) {
+			res.status(422).redirect('/');
+		}
+		res.status(200).render('user/profile', {
+			user: user,
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.postProfile = async (req, res, next) => {
+	const firstName = req.body.firstName;
+	const lastName = req.body.lastName;
+	const primaryPhone = req.body.primaryPhone;
+	const username = req.body.username;
+	const image = req.file;
+
+	try {
+		if (req.user.username !== username) {
+			const doExist = User.find({ where: { username: username } });
+			if (doExist) {
+				return res.status(422).json({
+					message: 'username already exist',
+				});
+			}
+			const user = User.findByPk(req.user.id);
+			user.firstName = firstName;
+			user.lastName = lastName;
+			user.primaryPhone = primaryPhone;
+			let avatar = user.avatar;
+			if (image) {
+				if (!avatar.includes('http')) {
+					deleteFile(avatar);
+				}
+				avatar = image.path;
+			}
+			user.avatar = avatar;
+			await user.save();
+			res.status(200).redirect('/user/profile');
+		}
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.postRandomAvatar = async (req, res, next) => {
+	const rand = Math.floor(Math.random() * 999999);
+	try {
+		const user = await User.findByPk(req.user.id);
+		user.avatar = `https://avatars.dicebear.com/api/big-smile/:${(
+			user.username + rand
+		).toString()}.svg`;
+		await user.save();
+		res.staus(200).json({
+			message: 'Changed Avatar',
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.resetAvatar = async (req, res, next) => {
+	try {
+		const user = await User.findByPk(req.user.id);
+		user.avatar = `https://avatars.dicebear.com/api/big-smile/:${user.username}.svg`;
+		await user.save();
+		res.staus(200).json({
+			message: 'Changed Avatar',
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.postAddAddress = async (req, res, next) =>
+{
+	const address = req.body.addBook;
+	const region = req.body.region;
+	const phoneNumber = req.body.phoneNumber;
+
+	try
+	{
+		const addressBook = await req.user.createAddressBook({
+			address: address,
+			region: region,
+			phoneNumber: phoneNumber
+		});
+		res.status(201).json({
+			message: 'Successfully created a new address',
+			address: address,
+			region: region,
+			phoneNumber: phoneNumber
+		})
+	} catch (err)
+	{
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+}
+
+exports.postEditAddress = async (req, res, next) =>
+{
+	const addressId = req.body.addressId;
+
+	const address = req.body.addBook;
+	const region = req.body.region;
+	const phoneNumber = req.body.phoneNumber;
+
+	try {
+		const addressBook = await AddressBook.findOne({
+			where: {
+				id: addressId,
+				userId: req.user.id,
+			}
+		});
+
+		if (!addressBook)
+		{
+			return res.status(422).json({
+				message: 'Address not found.',
+			})
+		}
+		addressBook.address = address || addressBook.address;
+		addressBook.region = region || addressBook.region;
+		addressBook.phoneNumber = phoneNumber || addressBook.phoneNumber;
+
+		await addressBook.save();
+		res.status(200).json({
+			message: 'Address updated!',
+			address: address,
+			region: region,
+			phoneNumber: phoneNumber,
+		})
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+}
+
+exports.postDeleteAddress = async (req, res, next) =>
+{
+	const addressId = req.body.addressId;
+
+	try {
+		const addressBook = await AddressBook.findOne({
+			where: {
+				id: addressId,
+				userId: req.user.id,
+			},
+		});
+
+		if (!addressBook) {
+			return res.status(422).json({
+				message: 'Address not found.',
+			});
+		}
+		await addressBook.destroy();
+
+		res.status(200).json({
+			message: 'Address deleted.'
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+}

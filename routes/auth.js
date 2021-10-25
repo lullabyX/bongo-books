@@ -18,13 +18,15 @@ router.post(
 			.isEmail()
 			.withMessage('Please enter a valid E-Mail.')
 			.custom((value, { req }) => {
-				return User.findOne({ email: value }).then((user) => {
-					if (!user) {
-						return Promise.reject(
-							'Account not found with the email'
-						);
+				return User.findOne({ where: { email: value } }).then(
+					(user) => {
+						if (!user) {
+							return Promise.reject(
+								'Account not found with the email'
+							);
+						}
 					}
-				});
+				);
 			})
 			.normalizeEmail(),
 		body('password').trim(),
@@ -44,24 +46,29 @@ router.post(
 			.isEmpty()
 			.withMessage('Username cannot be empty.')
 			.custom((value, { req }) => {
-				return User.findOne({ username: value }).then((user) => {
-					if (user) {
-						return Promise.reject('Username already in use.');
+				console.log(value);
+				return User.findOne({ where: { username: value } }).then(
+					(user) => {
+						if (user) {
+							return Promise.reject('Username already in use.');
+						}
 					}
-				});
+				);
 			})
 			.trim(),
 		body('email')
 			.isEmail()
 			.withMessage('Please enter a valid E-Mail.')
 			.custom((value, { req }) => {
-				return User.findOne({ email: value }).then((user) => {
-					if (user) {
-						return Promise.reject(
-							'Account already exist with the E-Mail.'
-						);
+				return User.findOne({ where: { email: value } }).then(
+					(user) => {
+						if (user) {
+							return Promise.reject(
+								'Account already exist with the E-Mail.'
+							);
+						}
 					}
-				});
+				);
 			})
 			.normalizeEmail(),
 		body('password')

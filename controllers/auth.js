@@ -94,6 +94,7 @@ exports.postSignup = async (req, res, next) => {
 			username: username,
 			email: email,
 			password: hashedPassword,
+			avatar: `https://avatars.dicebear.com/api/big-smile/:${username}.svg`
 		});
 		await user.createCart();
 		await req.session.save();

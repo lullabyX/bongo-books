@@ -59,4 +59,25 @@ router.post(
 	userController.postDeletePendingBook
 );
 
+// GET -> /user/profile
+router.get('/profile', isAuth, userController.getProfile);
+
+// POST -> /user/profile
+router.post('/profile', isAuth, userController.postProfile);
+
+// POST -> /user/profile/random-avatar
+router.post('/profile/random-avatar', isAuth, userController.postRandomAvatar);
+
+// POST -> /user/profile/reset-avatar
+router.post('/profile/reset-avatar', isAuth, userController.resetAvatar);
+
+// POST -> /user/profile/add-address
+router.post('/profile/add-address', isAuth, userController.postAddAddress);
+
+// POST -> /user/profile/edit-address
+router.post('/profile/edit-address', isAuth, userController.postEditAddress);
+
+// POST -> /user/profile/delete-address
+router.post('/profile/delete-address', isAuth, userController.postDeleteAddress);
+
 module.exports = router;
