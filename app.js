@@ -9,6 +9,7 @@ const shopRoutes = require('./routes/shop');
 const adminRoutes = require('./routes/admin');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
+const searchRoutes = require('./routes/search');
 
 const errorController = require('./controllers/error');
 
@@ -85,6 +86,7 @@ app.use(trimmer);
 app.use('/admin', adminRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
+app.use('/search', searchRoutes);
 app.use(shopRoutes);
 
 app.use(errorController.notFound);
