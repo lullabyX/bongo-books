@@ -153,7 +153,7 @@ exports.postAddBook = async (req, res, next) => {
 			});
 		});
 
-		res.status(201).redirect('admin/books');
+		res.status(201).redirect('/admin/books');
 	} catch (err) {
 		if (images.length > 0) {
 			images.forEach((image) => {
@@ -344,8 +344,7 @@ exports.postDeletePendingBook = async (req, res, next) => {
 			req.flash('error', 'Unauthorized!');
 			await req.session.save();
 			return res.status(404).redirect('/admin/pending-books');
-		} else
-		{
+		} else {
 			const pendingBookImages = await pendingBook.getPendingBookImages();
 			if (pendingBookImages.length > 0) {
 				pendingBookImages.forEach((image) => {

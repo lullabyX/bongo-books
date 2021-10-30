@@ -1,5 +1,7 @@
-const { validationResult } = require('express-validator');
+require('dotenv').config();
 
+const { validationResult } = require('express-validator');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/user');
 const Book = require('../models/book');
 const PendingBook = require('../models/pending-book');
@@ -8,8 +10,8 @@ const AddressBook = require('../models/address-book');
 
 exports.getCart = async (req, res, next) => {
 	try {
-		const cart = await req.user.getCart;
-		const books = await cart.getBooks;
+		const cart = await req.user.getCart();
+		const books = await cart.getBooks();
 
 		res.status(200).render('user/cart', {
 			books: books,
@@ -40,7 +42,121 @@ exports.postCart = async (req, res, next) => {
 		await cart.addBook(book, {
 			through: { quantity: newQty },
 		});
-		res.status(202).redirect('user/cart');
+		res.status(202).redirect('/user/cart');
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getShipping = async (req, res, next) => {
+	try {
+		const addresses = req.user.getAddressBooks();
+		const user = User.findByPk(req.user.id);
+		res.status(200).render('user/shipping', {
+			addresses: addresses,
+			user: user,
+			pageTitle: 'Shipping',
+			path: '/user/checkout/shipping',
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getCheckout = async (req, res, next) => {
+	let total = 0;
+	const addressId = req.query.id;
+	try {
+		const address = await AddressBook.findByPk(addressId);
+		if (!address) {
+			req.flash('error', 'Address not valid.');
+			await req.session.save();
+			return res.status(404).redirect('/user/cart');
+		}
+		const cart = await req.user.getCart();
+		const books = await cart.getBooks();
+		books.forEach((book) => {
+			total += book.price * book.cartItem.quantity;
+		});
+		let name = req.user.firstName + ' ' + req.user.lastName;
+		if (name == 'null null' || name == 'null ' || name == ' null') {
+			name = req.user.username;
+		}
+		console.log(name);
+		const stripeSession = await stripe.checkout.sessions.create({
+			payment_method_types: ['card'],
+			line_items: books.map((book) => {
+				return {
+					name: book.title,
+					description: book.description,
+					amount: book.price * 100,
+					quantity: book.cartItem.quantity,
+					currency: 'usd',
+				};
+			}),
+			customer_email: req.user.email,
+			success_url:
+				req.protocol +
+				'://' +
+				req.get('host') +
+				'/user/checkout/success?id=' +
+				address.id,
+			cancel_url:
+				req.protocol +
+				'://' +
+				req.get('host') +
+				'/user/checkout/cancel',
+		});
+		res.status(200).render('user/checkout', {
+			books: books,
+			pageTitle: 'checkout',
+			path: '/user/checkout',
+			totalSum: total,
+			sessionId: stripeSession.id,
+			publishkey: process.env.STRIPE_PUBLIC_KEY,
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.postOrder = async (req, res, next) => {
+	const addressId = req.query.id | 0;
+	try {
+		const address = await AddressBook.findByPk(addressId);
+		if (!address) {
+			address.address = 'Address';
+			address.region = 'Region';
+			address.phoneNumber = '+PhoneNumber';
+		}
+		const cart = await req.user.getCart();
+		const books = await cart.getBooks();
+		const order = await req.user.createOrder();
+		await order.addBook(
+			books.map((book) => {
+				book.orderItem = { quantity: book.cartItem.quantity };
+				return book;
+			})
+		);
+		order.shippingAddress = address.address;
+		order.shippingRegion = address.region;
+		order.shippingContact = address.phoneNumber;
+		await order.save();
+		await cart.setBooks(null);
+		books.forEach(async (book) => {
+			book.sellCount += book.orderItem.quantity;
+			await book.save();
+		});
+		res.status(201).redirect('/user/orders');
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -75,27 +191,6 @@ exports.getOrders = async (req, res, next) => {
 			path: '/user/orders',
 			orders: orders,
 		});
-	} catch (err) {
-		if (!err.statusCode) {
-			err.statusCode = 500;
-		}
-		next(err);
-	}
-};
-
-exports.postOrder = async (req, res, next) => {
-	try {
-		const cart = await req.user.getCart();
-		const books = await cart.getBooks();
-		const order = await req.user.createOrder();
-		await order.addBook(
-			books.map((book) => {
-				book.orderItem = { quantity: book.cartItem.quantity };
-				return book;
-			})
-		);
-		await cart.setBooks(null);
-		res.status(202).redirect('user/orders');
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -462,39 +557,34 @@ exports.resetAvatar = async (req, res, next) => {
 	}
 };
 
-exports.postAddAddress = async (req, res, next) =>
-{
-	const address = req.body.addBook;
+exports.postAddAddress = async (req, res, next) => {
+	const address = req.body.address;
 	const region = req.body.region;
 	const phoneNumber = req.body.phoneNumber;
-
-	try
-	{
+	try {
 		const addressBook = await req.user.createAddressBook({
 			address: address,
 			region: region,
-			phoneNumber: phoneNumber
+			phoneNumber: phoneNumber,
 		});
 		res.status(201).json({
 			message: 'Successfully created a new address',
 			address: address,
 			region: region,
-			phoneNumber: phoneNumber
-		})
-	} catch (err)
-	{
+			phoneNumber: phoneNumber,
+		});
+	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}
 		next(err);
 	}
-}
+};
 
-exports.postEditAddress = async (req, res, next) =>
-{
+exports.postEditAddress = async (req, res, next) => {
 	const addressId = req.body.addressId;
 
-	const address = req.body.addBook;
+	const address = req.body.address;
 	const region = req.body.region;
 	const phoneNumber = req.body.phoneNumber;
 
@@ -503,14 +593,13 @@ exports.postEditAddress = async (req, res, next) =>
 			where: {
 				id: addressId,
 				userId: req.user.id,
-			}
+			},
 		});
 
-		if (!addressBook)
-		{
+		if (!addressBook) {
 			return res.status(422).json({
 				message: 'Address not found.',
-			})
+			});
 		}
 		addressBook.address = address || addressBook.address;
 		addressBook.region = region || addressBook.region;
@@ -522,17 +611,16 @@ exports.postEditAddress = async (req, res, next) =>
 			address: address,
 			region: region,
 			phoneNumber: phoneNumber,
-		})
+		});
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}
 		next(err);
 	}
-}
+};
 
-exports.postDeleteAddress = async (req, res, next) =>
-{
+exports.postDeleteAddress = async (req, res, next) => {
 	const addressId = req.body.addressId;
 
 	try {
@@ -551,7 +639,7 @@ exports.postDeleteAddress = async (req, res, next) =>
 		await addressBook.destroy();
 
 		res.status(200).json({
-			message: 'Address deleted.'
+			message: 'Address deleted.',
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -559,4 +647,4 @@ exports.postDeleteAddress = async (req, res, next) =>
 		}
 		next(err);
 	}
-}
+};

@@ -24,6 +24,10 @@ const Book = sequelize.define('books', {
 		type: Sequelize.TEXT,
 		allowNull: false,
 	},
+	sellCount: {
+		type: Sequelize.INTEGER,
+		defaultValue: 0,
+	},
 	publishDate: Sequelize.STRING,
 	language: Sequelize.STRING,
 });

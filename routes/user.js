@@ -78,6 +78,22 @@ router.post('/profile/add-address', isAuth, userController.postAddAddress);
 router.post('/profile/edit-address', isAuth, userController.postEditAddress);
 
 // POST -> /user/profile/delete-address
-router.post('/profile/delete-address', isAuth, userController.postDeleteAddress);
+router.post(
+	'/profile/delete-address',
+	isAuth,
+	userController.postDeleteAddress
+);
+
+// GET -> /user/checkout/shipping
+router.get('/checkout/shipping', isAuth, userController.getShipping);
+
+// GET -> /user/checkout?id=addressId
+router.get('/checkout', isAuth, userController.getCheckout);
+
+// GET -> /user/checkout/success?id=addressId
+router.get('/checkout/success', isAuth, userController.postOrder);
+
+// GET -> /user/checkout/cancel
+router.get('/checkout/cancel', isAuth, userController.getCheckout);
 
 module.exports = router;
