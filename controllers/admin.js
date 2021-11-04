@@ -11,7 +11,6 @@ const GenreItem = require('../models/genre-items');
 const { deleteFile } = require('../util/filehelper');
 const fs = require('fs');
 const path = require('path');
-const BookImage = require('../models/book-image');
 
 exports.getBooks = async (req, res, next) => {
 	try {
@@ -539,6 +538,11 @@ exports.postEditBook = async (req, res, next) => {
 
 			res.status(202).redirect('/admin/books');
 		} else {
+			if (updatedImages.length > 0) {
+				updatedImages.forEach((image) => {
+					deleteFile(image.path);
+				});
+			}
 			req.flash('error', 'Unauthorized!');
 			await req.session.save();
 			res.status(404).redirect('/admin/books');
@@ -609,11 +613,15 @@ exports.postAuthor = async (req, res, next) => {
 	const name = req.body.name;
 	const image = req.file;
 	const description = req.body.description;
-	console.log(name);
-	try {
-		const imageUrl = '/' + image.path;
+	try
+	{	
+		const imageUrl = '/' + image?image.path:"";
 		const author = await Author.findOne({ where: { name: name } });
-		if (author) {
+		if (author)
+		{
+			if (image) {
+				deleteFile(image.path);
+			}
 			return res.status(303).json({
 				message: 'Author already exist',
 				name: name,
@@ -633,7 +641,10 @@ exports.postAuthor = async (req, res, next) => {
 			imageUrl: imageUrl,
 			description: description,
 		});
-	} catch {
+	} catch(err){
+		if (image) {
+			deleteFile(image.path)
+		}
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}
@@ -649,7 +660,11 @@ exports.postEditAuthor = async (req, res, next) => {
 	console.log(name);
 	try {
 		const author = await Author.findByPk(authorId);
-		if (!author) {
+		if (!author)
+		{
+			if (image) {
+				deleteFile(image.path);
+			}
 			return res.status(404).json({
 				message: 'Author not found. Check author id.',
 			});
@@ -708,7 +723,11 @@ exports.postPublication = async (req, res, next) => {
 		const publication = await Publication.findOne({
 			where: { name: name },
 		});
-		if (publication) {
+		if (publication)
+		{
+			if (image) {
+				deleteFile(image.path);
+			}
 			return res.status(303).json({
 				message: 'Publication already exist',
 				name: name,
@@ -751,7 +770,11 @@ exports.postEditPublication = async (req, res, next) => {
 	try {
 		const publication = await Publication.findByPk(publicationId);
 
-		if (!publication) {
+		if (!publication)
+		{
+			if (image) {
+				deleteFile(image.path);
+			}
 			return res.status(404).json({
 				message: 'Publication not found. Check publication id.',
 			});
@@ -808,8 +831,11 @@ exports.postGenre = async (req, res, next) => {
 	const description = req.body.description;
 	try {
 		const genre = await Genre.findOne({ where: { name: name } });
-		console.log(genre);
-		if (genre) {
+		if (genre)
+		{
+			if (image) {
+				deleteFile(image.path);
+			}
 			return res.status(303).json({
 				message: 'Genre already exist',
 				name: name,
@@ -822,7 +848,7 @@ exports.postGenre = async (req, res, next) => {
 			if (imageUrl) {
 				deleteFile(imageUrl);
 			}
-			imageUrl = image.path;
+			imageUrl = '/' + image.path;
 		}
 		await Genre.create({
 			name: name,
@@ -836,6 +862,9 @@ exports.postGenre = async (req, res, next) => {
 			description: description,
 		});
 	} catch {
+		if (image) {
+			deleteFile(image.path);
+		}
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}
@@ -850,7 +879,11 @@ exports.postEditGenre = async (req, res, next) => {
 	const description = req.body.description;
 	try {
 		const genre = await Genre.findByPk(genreId);
-		if (!genre) {
+		if (!genre)
+		{
+			if (image) {
+				deleteFile(image.path);
+			}
 			return res.status(404).json({
 				message: 'Genre not found. Check genre id.',
 			});
@@ -860,7 +893,7 @@ exports.postEditGenre = async (req, res, next) => {
 			if (imageUrl) {
 				deleteFile(imageUrl);
 			}
-			imageUrl = image.path;
+			imageUrl = '/' + image.path;
 		}
 		genre.name = name;
 		genre.imageUrl = imageUrl;
@@ -875,6 +908,9 @@ exports.postEditGenre = async (req, res, next) => {
 			description: description,
 		});
 	} catch {
+		if (image) {
+			deleteFile(image.path);
+		}
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}

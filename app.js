@@ -1,3 +1,4 @@
+require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const session = require('express-session');
@@ -135,7 +136,7 @@ sequelize
 	// .sync({ force: true })
 	.sync()
 	.then((result) => {
-		app.listen(8080);
+		app.listen(process.env.HOST_PORT);
 	})
 	.catch((err) => {
 		console.log(err);

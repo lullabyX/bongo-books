@@ -1,17 +1,16 @@
+require('dotenv').config();
 const bcrypt = require('bcrypt');
 const SibApiV3Sdk = require('sib-api-v3-sdk');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
-const { validationResult } = require('express-validator');
+const {validationResult} = require('express-validator');
 
 const User = require('../models/user');
-const config = require('../config'); // create a config.js file in root folder containing obeject
-// with your SendInBlue api key as "SIB_API_KEY" and export here
 
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 
 const apiKey = defaultClient.authentications['api-key'];
-apiKey.apiKey = config.SIB_API_KEY;
+apiKey.apiKey = process.env.SIB_API_KEY;
 
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
@@ -106,7 +105,7 @@ exports.postSignup = async (req, res, next) => {
 					name: username,
 				},
 			],
-			templateId: 2,
+			templateId: process.env.SIB_SIGNUP_TEMPLATE_ID,
 			params: {
 				FULLNAME: username,
 			},
@@ -172,10 +171,17 @@ exports.postPasswordReset = async (req, res, next) => {
 					name: user.username,
 				},
 			],
-			templateId: 3,
+			templateId: process.env.SIB_PASSWORD_RESET_TEMPLATE_ID,
 			params: {
 				FULLNAME: user.firstName + ' ' + user.lastName,
-				TOKEN: 'http://localhost:8080/reset/' + token,
+				TOKEN:
+					process.env.HOST_PROTOCOL +
+					'://' +
+					process.env.HOST +
+					':' +
+					process.env.HOST_PORT +
+					'/reset/' +
+					token,
 			},
 		};
 		const data = await apiInstance.sendTransacEmail(passwordResetEmail);

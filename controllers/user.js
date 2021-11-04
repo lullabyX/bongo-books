@@ -475,6 +475,8 @@ exports.getProfile = async (req, res, next) => {
 		}
 		res.status(200).render('user/profile', {
 			user: user,
+			pageTitle: 'Profile | ' + req.user.username,
+			path: '/user/profile',
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -488,33 +490,46 @@ exports.postProfile = async (req, res, next) => {
 	const firstName = req.body.firstName;
 	const lastName = req.body.lastName;
 	const primaryPhone = req.body.primaryPhone;
-	const username = req.body.username;
+	const username = req.body.username || req.user.username;
 	const image = req.file;
-
 	try {
-		if (req.user.username !== username) {
-			const doExist = User.find({ where: { username: username } });
+		if (req.user.username != username) {
+			const doExist = await User.findOne({
+				where: { username: username.toString() },
+			});
 			if (doExist) {
+				if (image) {
+					deleteFile(image.path);
+				}
 				return res.status(422).json({
 					message: 'username already exist',
 				});
 			}
-			const user = User.findByPk(req.user.id);
-			user.firstName = firstName;
-			user.lastName = lastName;
-			user.primaryPhone = primaryPhone;
-			let avatar = user.avatar;
-			if (image) {
-				if (!avatar.includes('http')) {
-					deleteFile(avatar);
-				}
-				avatar = image.path;
-			}
-			user.avatar = avatar;
-			await user.save();
-			res.status(200).redirect('/user/profile');
 		}
+		const user = await User.findByPk(req.user.id);
+		if (!user) {
+			const err = new Error('Something Went Wrong');
+			err.statusCode = 404;
+			throw err;
+		}
+		user.firstName = firstName;
+		user.lastName = lastName;
+		user.primaryPhone = primaryPhone;
+		user.username = username;
+		let avatar = user.avatar;
+		if (image) {
+			if (!avatar.includes('http')) {
+				deleteFile(avatar);
+			}
+			avatar = '/' + image.path;
+		}
+		user.avatar = avatar;
+		await user.save();
+		res.status(200).redirect('/user/profile');
 	} catch (err) {
+		if (image) {
+			deleteFile(image.path);
+		}
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}
@@ -526,11 +541,19 @@ exports.postRandomAvatar = async (req, res, next) => {
 	const rand = Math.floor(Math.random() * 999999);
 	try {
 		const user = await User.findByPk(req.user.id);
+		if (!user) {
+			const err = new Error('Something went wrong.');
+			err.statusCode(404);
+			throw err;
+		}
+		if (!user.avatar.includes('http')) {
+			deleteFile(user.avatar);
+		}
 		user.avatar = `https://avatars.dicebear.com/api/big-smile/:${(
 			user.username + rand
 		).toString()}.svg`;
 		await user.save();
-		res.staus(200).json({
+		res.status(200).json({
 			message: 'Changed Avatar',
 		});
 	} catch (err) {
@@ -544,10 +567,18 @@ exports.postRandomAvatar = async (req, res, next) => {
 exports.resetAvatar = async (req, res, next) => {
 	try {
 		const user = await User.findByPk(req.user.id);
+		if (!user) {
+			const err = new Error('Something went wrong.');
+			err.statusCode(404);
+			throw err;
+		}
+		if (!user.avatar.includes('http')) {
+			deleteFile(user.avatar);
+		}
 		user.avatar = `https://avatars.dicebear.com/api/big-smile/:${user.username}.svg`;
 		await user.save();
-		res.staus(200).json({
-			message: 'Changed Avatar',
+		res.status(200).json({
+			message: 'Reseted Avatar',
 		});
 	} catch (err) {
 		if (!err.statusCode) {

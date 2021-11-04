@@ -63,7 +63,12 @@ router.post(
 router.get('/profile', isAuth, userController.getProfile);
 
 // POST -> /user/profile
-router.post('/profile', isAuth, userController.postProfile);
+router.post(
+	'/profile',
+	isAuth,
+	uploadController.single,
+	userController.postProfile
+);
 
 // POST -> /user/profile/random-avatar
 router.post('/profile/random-avatar', isAuth, userController.postRandomAvatar);
