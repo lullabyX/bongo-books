@@ -101,4 +101,7 @@ router.get('/checkout/success', isAuth, userController.postOrder);
 // GET -> /user/checkout/cancel
 router.get('/checkout/cancel', isAuth, userController.getCheckout);
 
+// GET -> /user/checkout/cancel
+router.get('/order/:orderId', isAuth, userController.getInvoice);
+
 module.exports = router;

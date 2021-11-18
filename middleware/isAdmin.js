@@ -4,7 +4,7 @@ module.exports = async (req, res, next) => {
 			return res.status(401).redirect('/auth/login');
 		}
 		if (req.session.user.userType !== 'admin') {
-			req.flash('error', 'Unathorized!');
+			req.flash('error', 'Unauthorized!');
 			await req.session.save();
 			return res.status(401).redirect('/');
 		}

@@ -1,12 +1,19 @@
 require('dotenv').config();
 
+const path = require('path');
+const fs = require('fs');
+
 const { validationResult } = require('express-validator');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/user');
 const Book = require('../models/book');
+const Order = require('../models/order');
 const PendingBook = require('../models/pending-book');
 const { deleteFile } = require('../util/filehelper');
 const AddressBook = require('../models/address-book');
+const OrderItem = require('../models/order-item');
+
+const { createInvoice } = require('../util/createInvoice');
 
 exports.getCart = async (req, res, next) => {
 	try {
@@ -672,6 +679,71 @@ exports.postDeleteAddress = async (req, res, next) => {
 		res.status(200).json({
 			message: 'Address deleted.',
 		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getInvoice = async (req, res, next) => {
+	const orderId = req.params.orderId;
+
+	try {
+		const order = await Order.findByPk(orderId);
+		const books = await order.getBooks();
+
+		if (order.userId != req.user.id) {
+			req.flash('error', 'Not Authorized!');
+			await req.session.save();
+			return res.status(404).redirect('/user/orders');
+		}
+
+		const invoiceName = 'invoice-' + orderId + '.pdf';
+		const invoicePath = path.join('data', 'invoices', invoiceName);
+
+		if (fs.existsSync(invoicePath)) {
+			const file = fs.createReadStream(invoicePath);
+			res.setHeader('Content-Type', 'application/pdf');
+			res.setHeader(
+				'Content-Disposition',
+				'inline; filename="' + invoiceName + '"'
+			);
+
+			file.pipe(res);
+		} else {
+			let total = 0;
+			let item = [];
+			books.forEach((book) => {
+				total += book.price * book.orderItem.quantity;
+				let tmp = {
+					item: book.title,
+					description: book.description,
+					quantity: book.orderItem.quantity,
+					amount: book.price * book.orderItem.quantity * 100,
+				};
+				item.push(tmp);
+			});
+			const invoice = {
+				shipping: {
+					name: req.user.username,
+					contactNo: order.shippingContact,
+					address: order.shippingAddress,
+					region: order.shippingRegion,
+				},
+				items: item,
+				subtotal: total * 100,
+				paid: total * 100,
+				invoice_nr: orderId,
+			};
+
+			console.log(invoicePath);
+			const pdfDoc = createInvoice(invoice, invoicePath);
+
+			pdfDoc.pipe(fs.createWriteStream(invoicePath));
+			pdfDoc.pipe(res);
+		}
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;

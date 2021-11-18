@@ -28,7 +28,7 @@ router.post(
 					}
 				);
 			})
-			.normalizeEmail(),
+			.normalizeEmail({ gmail_remove_dots: false }),
 		body('password').trim(),
 	],
 	authController.postLogin
@@ -70,7 +70,7 @@ router.post(
 					}
 				);
 			})
-			.normalizeEmail(),
+			.normalizeEmail({ gmail_remove_dots: false }),
 		body('password')
 			.isLength({ min: 8 })
 			.withMessage('Password must be atleast 8 characters long.')

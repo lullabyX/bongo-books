@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const SibApiV3Sdk = require('sib-api-v3-sdk');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
-const {validationResult} = require('express-validator');
+const { validationResult } = require('express-validator');
 
 const User = require('../models/user');
 
@@ -93,11 +93,11 @@ exports.postSignup = async (req, res, next) => {
 			username: username,
 			email: email,
 			password: hashedPassword,
-			avatar: `https://avatars.dicebear.com/api/big-smile/:${username}.svg`
+			avatar: `https://avatars.dicebear.com/api/big-smile/:${username}.svg`,
 		});
 		await user.createCart();
+		req.flash('success', 'Account Created!');
 		await req.session.save();
-		res.status(202).redirect('/');
 		confirmationEmail = {
 			to: [
 				{
@@ -112,6 +112,7 @@ exports.postSignup = async (req, res, next) => {
 		};
 		const data = await apiInstance.sendTransacEmail(confirmationEmail);
 		console.log('Confirmation Sent! Returned data ' + JSON.stringify(data));
+		res.status(202).redirect('/');
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;

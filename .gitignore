@@ -180,4 +180,7 @@ config.js
 *.3dm
 *.max
 
+# PDF
+*.pdf
+
 # End of https://www.toptal.com/developers/gitignore/api/images
