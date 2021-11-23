@@ -12,8 +12,11 @@ const PendingBook = require('../models/pending-book');
 const { deleteFile } = require('../util/filehelper');
 const AddressBook = require('../models/address-book');
 const OrderItem = require('../models/order-item');
+const Rating = require('../models/rating');
 
 const { createInvoice } = require('../util/createInvoice');
+const sequelize = require('../util/database');
+const RatingItem = require('../models/rating-item');
 
 exports.getCart = async (req, res, next) => {
 	try {
@@ -744,6 +747,51 @@ exports.getInvoice = async (req, res, next) => {
 			pdfDoc.pipe(fs.createWriteStream(invoicePath));
 			pdfDoc.pipe(res);
 		}
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.postRating = async (req, res, next) => {
+	const bookId = req.body.bookId;
+	const userRating = req.body.rating;
+	try {
+		const book = await Book.findByPk(bookId);
+		if (!book) {
+			const err = new Error('No book found of that id.');
+			err.statusCode = 404;
+			throw err;
+		}
+		let rating = await book.getRating();
+		if (!rating) {
+			rating = await book.createRating();
+		}
+		const user = await User.findByPk(req.user.id);
+		await user.addRating(rating, {
+			through: {
+				bookId: book.id,
+				rating: userRating,
+			},
+		});
+
+		const avgRating = await RatingItem.findOne({
+			where: { bookId: book.id },
+			attributes: [
+				'bookId',
+				[sequelize.fn('avg', sequelize.col('rating')), 'avgRating'],
+			],
+			group: ['bookId'],
+		});
+		rating.avgRating = avgRating.dataValues.avgRating;
+		await rating.save();
+		return res.status(201).json({
+			message: `Rating ${userRating} is added to ${book.title}`,
+			rating: userRating,
+			bookId: bookId,
+		});
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;

@@ -3,10 +3,16 @@ const Author = require('../models/author');
 const Tag = require('../models/tag');
 const Genre = require('../models/genre');
 const Publication = require('../models/publication');
+const Rating = require('../models/rating');
 
 exports.getIndex = async (req, res, next) => {
 	try {
-		const books = await Book.findAll();
+		const books = await Book.findAll({
+			include: [
+				{ model: Rating },
+				{ model: Author }
+			],
+		});
 		res.render('shop/index', {
 			books: books,
 			pageTitle: 'BongoBooks',
@@ -22,7 +28,12 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getBooks = async (req, res, next) => {
 	try {
-		const books = await Book.findAll();
+		const books = await Book.findAll({
+			include: [
+				{ model: Rating },
+				{ model: Author }
+			],
+		});
 		res.render('shop/books', {
 			books: books,
 			pageTitle: 'Shop Page',
@@ -215,7 +226,7 @@ exports.getPublicationBooks = async (req, res, next) => {
 		});
 		res.render('shop/books-of-attribute', {
 			books: books,
-			pageTitle: 'Books | '+publication.name,
+			pageTitle: 'Books | ' + publication.name,
 			path: '/books/publication',
 		});
 	} catch (err) {

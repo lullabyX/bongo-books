@@ -104,4 +104,7 @@ router.get('/checkout/cancel', isAuth, userController.getCheckout);
 // GET -> /user/checkout/cancel
 router.get('/order/:orderId', isAuth, userController.getInvoice);
 
+// POST -> /user/rating/add
+router.post('/rating/add', isAuth, userController.postRating);
+
 module.exports = router;

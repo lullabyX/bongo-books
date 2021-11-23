@@ -35,6 +35,8 @@ const AddressBook = require('./models/address-book');
 const trimmer = require('./middleware/trimmer');
 const BookImage = require('./models/book-image');
 const PendingBookImage = require('./models/pending-book-image');
+const Rating = require('./models/rating');
+const RatingItem = require('./models/rating-item');
 
 const app = express();
 
@@ -131,6 +133,12 @@ Book.hasMany(BookImage);
 
 PendingBookImage.belongsTo(PendingBook);
 PendingBook.hasMany(PendingBookImage);
+
+Book.hasOne(Rating);
+Rating.belongsTo(Book);
+
+User.belongsToMany(Rating, { through: RatingItem });
+Rating.belongsToMany(User, { through: RatingItem });
 
 sequelize
 	// .sync({ force: true })
