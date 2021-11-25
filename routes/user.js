@@ -101,10 +101,13 @@ router.get('/checkout/success', isAuth, userController.postOrder);
 // GET -> /user/checkout/cancel
 router.get('/checkout/cancel', isAuth, userController.getCheckout);
 
-// GET -> /user/checkout/cancel
+// GET -> /user/order/:orderId
 router.get('/order/:orderId', isAuth, userController.getInvoice);
 
 // POST -> /user/rating/add
 router.post('/rating/add', isAuth, userController.postRating);
+
+// POST -> /user/review/add
+router.post('/review/add', isAuth, userController.postReview);
 
 module.exports = router;

@@ -37,6 +37,7 @@ const BookImage = require('./models/book-image');
 const PendingBookImage = require('./models/pending-book-image');
 const Rating = require('./models/rating');
 const RatingItem = require('./models/rating-item');
+const Review = require('./models/review');
 
 const app = express();
 
@@ -139,6 +140,9 @@ Rating.belongsTo(Book);
 
 User.belongsToMany(Rating, { through: RatingItem });
 Rating.belongsToMany(User, { through: RatingItem });
+
+Book.hasMany(Review);
+Review.belongsTo(Book);
 
 sequelize
 	// .sync({ force: true })

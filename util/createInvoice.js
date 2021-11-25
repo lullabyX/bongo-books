@@ -1,5 +1,3 @@
-const { doesNotReject } = require('assert');
-const fs = require('fs');
 const PDFDocument = require('pdfkit');
 
 function createInvoice(invoice, path) {
@@ -98,7 +96,7 @@ function generateInvoiceTable(doc, invoice) {
 		doc,
 		subtotalPosition,
 		'',
-		'',
+		// '',
 		'Subtotal',
 		'',
 		formatCurrency(invoice.subtotal)
@@ -109,7 +107,7 @@ function generateInvoiceTable(doc, invoice) {
 		doc,
 		paidToDatePosition,
 		'',
-		'',
+		// '',
 		'Paid To Date',
 		'',
 		formatCurrency(invoice.paid)
@@ -121,7 +119,7 @@ function generateInvoiceTable(doc, invoice) {
 		doc,
 		duePosition,
 		'',
-		'',
+		// '',
 		'Balance Due',
 		'',
 		formatCurrency(invoice.subtotal - invoice.paid)
@@ -131,7 +129,7 @@ function generateInvoiceTable(doc, invoice) {
 
 function generateFooter(doc) {
 	doc.fontSize(10).text(
-		'Payment is due within 15 days. Thank you for your business.',
+		'Thank you for your business. Happy reading!',
 		50,
 		780,
 		{ align: 'center', width: 500 }

@@ -98,7 +98,6 @@ exports.getCheckout = async (req, res, next) => {
 		if (name == 'null null' || name == 'null ' || name == ' null') {
 			name = req.user.username;
 		}
-		console.log(name);
 		const stripeSession = await stripe.checkout.sessions.create({
 			payment_method_types: ['card'],
 			line_items: books.map((book) => {
@@ -740,8 +739,6 @@ exports.getInvoice = async (req, res, next) => {
 				paid: total * 100,
 				invoice_nr: orderId,
 			};
-
-			console.log(invoicePath);
 			const pdfDoc = createInvoice(invoice, invoicePath);
 
 			pdfDoc.pipe(fs.createWriteStream(invoicePath));
@@ -791,6 +788,37 @@ exports.postRating = async (req, res, next) => {
 			message: `Rating ${userRating} is added to ${book.title}`,
 			rating: userRating,
 			bookId: bookId,
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.postReview = async (req, res, next) => {
+	const bookId = req.body.bookId;
+	const review = req.body.review;
+	try {
+		const book = await Book.findByPk(bookId);
+		const userOrder = await book.getOrders({
+			where: { userId: req.user.id },
+		});
+		let isVarified = false;
+		if (userOrder.length > 0) {
+			isVarified = true;
+		}
+		await book.createReview({
+			userId: req.user.id,
+			review: review,
+			varifiedPurchase: isVarified,
+		});
+		res.status(201).json({
+			message: 'Review added',
+			bookId: bookId,
+			review: review,
+			varifiedPurchase: isVarified,
 		});
 	} catch (err) {
 		if (!err.statusCode) {
