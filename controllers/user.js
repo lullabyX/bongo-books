@@ -18,6 +18,37 @@ const { createInvoice } = require('../util/createInvoice');
 const sequelize = require('../util/database');
 const RatingItem = require('../models/rating-item');
 
+exports.getBooks = async (req, res, next) => {
+	const page = +req.query.page || 1;
+	let totalBooks;
+	let totalPages;
+	try {
+		const books = await Book.findAndCountAll({
+			offset: (page - 1) * process.env.BOOKS_PER_PAGE,
+			limit: process.env.BOOKS_PER_PAGE,
+			where: { userId: req.user.id },
+		});
+		totalBooks = books.count;
+		totalPages = Math.ceil(totalBooks / process.env.BOOKS_PER_PAGE);
+		res.status(200).render('user/books', {
+			books: books,
+			pageTitle: 'Your Books',
+			path: '/user/books',
+			pagination: {
+				currentPage: page,
+				previousPage: page - 1,
+				nextPage: page + 1,
+				totalPages: totalPages,
+			},
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
 exports.getCart = async (req, res, next) => {
 	try {
 		const cart = await req.user.getCart();

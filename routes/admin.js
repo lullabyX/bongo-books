@@ -42,8 +42,8 @@ router.post(
 // POST -> /admin/delete-book deletes a book NOTE: bookId as "id" should be passed in body
 router.post('/delete-book', isAdmin, adminController.postDeleteBook);
 
-// GET -> /admin/author
-router.get('/authors', isAdmin, adminController.getAuthors);
+// GET -> /admin/add-author
+router.get('/add-author', isAdmin, adminController.getAddAuthor);
 
 // POST -> /admin/add-author
 router.post(
@@ -61,8 +61,8 @@ router.post(
 	adminController.postEditAuthor
 );
 
-// GET -> /admin/publications
-router.get('/publications', isAdmin, adminController.getPublications);
+// GET -> /admin/add-publication
+router.get('/add-publication', isAdmin, adminController.getAddPublication);
 
 // POST -> /admin/add-publication
 router.post(
@@ -80,8 +80,8 @@ router.post(
 	adminController.postEditPublication
 );
 
-// GET -> /admin/genres
-router.get('/genres', isAdmin, adminController.getGenres);
+// GET -> /admin/add-genre
+router.get('/add-genre', isAdmin, adminController.getAddGenre);
 
 // POST -> /admin/add-genre
 router.post(

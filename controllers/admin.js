@@ -13,12 +13,27 @@ const fs = require('fs');
 const path = require('path');
 
 exports.getBooks = async (req, res, next) => {
+	const page = +req.query.page || 1;
+	let totalBooks;
+	let totalPages;
 	try {
-		const books = await Book.findAll({ where: { userId: req.user.id } });
+		const books = await Book.findAndCountAll({
+			offset: (page - 1) * process.env.BOOKS_PER_PAGE,
+			limit: process.env.BOOKS_PER_PAGE,
+			where: { userId: req.user.id },
+		});
+		totalBooks = books.count;
+		totalPages = Math.ceil(totalBooks / process.env.BOOKS_PER_PAGE);
 		res.status(200).render('admin/books', {
 			books: books,
 			pageTitle: 'Admin Books',
 			path: '/admin/books',
+			pagination: {
+				currentPage: page,
+				previousPage: page - 1,
+				nextPage: page + 1,
+				totalPages: totalPages,
+			},
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -167,12 +182,26 @@ exports.postAddBook = async (req, res, next) => {
 };
 
 exports.getPendingBooks = async (req, res, next) => {
+	const page = +req.query.page || 1;
+	let totalBooks;
+	let totalPages;
 	try {
-		const pendingBooks = await PendingBook.findAll();
+		const pendingBooks = await PendingBook.findAndCountAll({
+			offset: (page - 1) * process.env.BOOKS_PER_PAGE,
+			limit: process.env.BOOKS_PER_PAGE,
+		});
+		totalBooks = pendingBooks.count;
+		totalPages = Math.ceil(totalBooks / process.env.BOOKS_PER_PAGE);
 		res.status(200).render('admin/pending-books', {
 			books: pendingBooks,
 			pageTitle: 'Pending Books',
 			path: '/admin/pending-books',
+			pagination: {
+				currentPage: page,
+				previousPage: page - 1,
+				nextPage: page + 1,
+				totalPages: totalPages,
+			},
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -593,13 +622,11 @@ exports.postDeleteBook = async (req, res, next) => {
 	}
 };
 
-exports.getAuthors = async (req, res, next) => {
+exports.getAddAuthor = async (req, res, next) => {
 	try {
-		const authors = await Author.findAll();
-		res.status(200).render('admin/authors', {
-			authors: authors,
-			pageTitle: 'Authors',
-			path: '/admin/authors',
+		res.status(200).render('admin/add-author', {
+			pageTitle: 'Add Author',
+			path: '/admin/add-author',
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -613,12 +640,10 @@ exports.postAuthor = async (req, res, next) => {
 	const name = req.body.name;
 	const image = req.file;
 	const description = req.body.description;
-	try
-	{	
-		const imageUrl = '/' + image?image.path:"";
+	try {
+		const imageUrl = '/' + image ? image.path : '';
 		const author = await Author.findOne({ where: { name: name } });
-		if (author)
-		{
+		if (author) {
 			if (image) {
 				deleteFile(image.path);
 			}
@@ -641,9 +666,9 @@ exports.postAuthor = async (req, res, next) => {
 			imageUrl: imageUrl,
 			description: description,
 		});
-	} catch(err){
+	} catch (err) {
 		if (image) {
-			deleteFile(image.path)
+			deleteFile(image.path);
 		}
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -660,8 +685,7 @@ exports.postEditAuthor = async (req, res, next) => {
 	console.log(name);
 	try {
 		const author = await Author.findByPk(authorId);
-		if (!author)
-		{
+		if (!author) {
 			if (image) {
 				deleteFile(image.path);
 			}
@@ -699,13 +723,11 @@ exports.postEditAuthor = async (req, res, next) => {
 	}
 };
 
-exports.getPublications = async (req, res, next) => {
+exports.getAddPublication = async (req, res, next) => {
 	try {
-		const publications = await Publication.findAll();
-		res.status(200).render('admin/publications', {
-			authors: publications,
-			pageTitle: 'Publications',
-			path: '/admin/publication',
+		res.status(200).render('admin/add-publication', {
+			pageTitle: 'Add Publication',
+			path: '/admin/add-publication',
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -723,8 +745,7 @@ exports.postPublication = async (req, res, next) => {
 		const publication = await Publication.findOne({
 			where: { name: name },
 		});
-		if (publication)
-		{
+		if (publication) {
 			if (image) {
 				deleteFile(image.path);
 			}
@@ -770,8 +791,7 @@ exports.postEditPublication = async (req, res, next) => {
 	try {
 		const publication = await Publication.findByPk(publicationId);
 
-		if (!publication)
-		{
+		if (!publication) {
 			if (image) {
 				deleteFile(image.path);
 			}
@@ -809,13 +829,11 @@ exports.postEditPublication = async (req, res, next) => {
 	}
 };
 
-exports.getGenres = async (req, res, next) => {
+exports.getAddGenre = async (req, res, next) => {
 	try {
-		const genres = await Genre.findAll();
-		res.status(200).render('admin/genres', {
-			authors: genres,
+		res.status(200).render('admin/add-genre', {
 			pageTitle: 'Genres',
-			path: '/admin/genres',
+			path: '/admin/add-genre',
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -831,8 +849,7 @@ exports.postGenre = async (req, res, next) => {
 	const description = req.body.description;
 	try {
 		const genre = await Genre.findOne({ where: { name: name } });
-		if (genre)
-		{
+		if (genre) {
 			if (image) {
 				deleteFile(image.path);
 			}
@@ -879,8 +896,7 @@ exports.postEditGenre = async (req, res, next) => {
 	const description = req.body.description;
 	try {
 		const genre = await Genre.findByPk(genreId);
-		if (!genre)
-		{
+		if (!genre) {
 			if (image) {
 				deleteFile(image.path);
 			}

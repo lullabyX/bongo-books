@@ -4,6 +4,7 @@ const Genre = require('../models/genre');
 const Tag = require('../models/tag');
 const Publication = require('../models/publication');
 const Author = require('../models/author');
+const BookImage = require('../models/book-image');
 
 function isFloat(n) {
 	return Number(n) === n && n % 1 !== 0;
@@ -15,7 +16,6 @@ exports.getGeneralSearch = async (req, res, next) => {
 		terms = terms.split(' ').map((term) => {
 			return '%' + term + '%';
 		});
-		console.log(terms);
 		const books = await Book.findAll({
 			include: [
 				{
@@ -34,6 +34,7 @@ exports.getGeneralSearch = async (req, res, next) => {
 					model: Tag,
 					subQuery: true,
 				},
+				{ model: BookImage },
 			],
 			where: {
 				[Op.or]: [
@@ -100,9 +101,10 @@ exports.getGeneralSearch = async (req, res, next) => {
 				],
 			},
 		});
-		res.status(200).json({
-			message: 'success',
+		res.status(200).render('/shop/search', {
 			books: books,
+			pageTitle: 'Search',
+			path: '/search',
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -166,7 +168,7 @@ exports.getFilteredSearch = async (req, res, next) => {
 		}
 
 		//publishDate sanitization
-		console.log('publishdate', String(publishDate).includes('[a-zA-Z]+'));
+		// console.log('publishdate', String(publishDate).includes('[a-zA-Z]+'));
 		if (
 			String(publishDate).includes('[a-zA-Z]+') |
 			(String(publishDate).length != 4)
@@ -193,6 +195,7 @@ exports.getFilteredSearch = async (req, res, next) => {
 					model: Tag,
 					subQuery: true,
 				},
+				{ model: BookImage },
 			],
 			where: {
 				[Op.or]: [
@@ -296,10 +299,10 @@ exports.getFilteredSearch = async (req, res, next) => {
 				],
 			},
 		});
-
-		res.status(200).json({
-			message: 'Success',
+		res.status(200).render('/shop/search', {
 			books: books,
+			pageTitle: 'Search',
+			path: '/search',
 		});
 	} catch (err) {
 		if (!err.statusCode) {

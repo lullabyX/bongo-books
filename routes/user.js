@@ -7,6 +7,9 @@ const userController = require('../controllers/user');
 const uploadController = require('../controllers/upload');
 const isAuth = require('../middleware/isAuth');
 
+// GET -> /user/books
+router.get('/books', isAuth, userController.getBooks);
+
 // GET -> /user/cart
 router.get('/cart', isAuth, userController.getCart);
 
