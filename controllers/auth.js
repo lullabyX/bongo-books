@@ -6,6 +6,7 @@ const { Op } = require('sequelize');
 const { validationResult } = require('express-validator');
 
 const User = require('../models/user');
+const PendingUser = require('../models/pending-user');
 
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 
@@ -14,6 +15,7 @@ apiKey.apiKey = process.env.SIB_API_KEY;
 
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
+let emailVerification = new SibApiV3Sdk.SendSmtpEmail();
 let confirmationEmail = new SibApiV3Sdk.SendSmtpEmail();
 let passwordResetEmail = new SibApiV3Sdk.SendSmtpEmail();
 
@@ -89,35 +91,104 @@ exports.postSignup = async (req, res, next) => {
 
 	try {
 		const hashedPassword = await bcrypt.hash(password, 12);
-		const user = await User.create({
-			username: username,
-			email: email,
-			password: hashedPassword,
-			avatar: `https://avatars.dicebear.com/api/big-smile/:${username}.svg`,
+		const buffer = crypto.randomBytes(32);
+		const token = buffer.toString('hex');
+
+		const pendingUser = await PendingUser.findOne({
+			where: { email: email },
 		});
-		await user.createCart();
-		req.flash('success', 'Account Created!');
+
+		if (!pendingUser) {
+			await PendingUser.create({
+				username: username,
+				email: email,
+				password: hashedPassword,
+				token: token,
+				tokenTimeout: Date.now() + 3600000,
+			});
+		} else {
+			pendingUser.token = token;
+			pendingUser.tokenTimeout = Date.now() + 3600000;
+			await pendingUser.save();
+		}
+
+		req.flash('success', 'Verification link sent to email!');
 		await req.session.save();
-		confirmationEmail = {
+		emailVerification = {
 			to: [
 				{
 					email: email,
 					name: username,
 				},
 			],
-			templateId: process.env.SIB_SIGNUP_TEMPLATE_ID,
+			templateId: +process.env.SIB_EMAIL_VERIFICATION_TEMPLATE_ID,
 			params: {
 				FULLNAME: username,
+				TOKEN:
+					process.env.BONGOBOOKSURL + '/auth/verification/' + token,
+				EMAIL: email,
+				BONGOBOOKSURL: process.env.BONGOBOOKSURL,
 			},
 		};
-		const data = await apiInstance.sendTransacEmail(confirmationEmail);
+		console.log(process.env.SIB_EMAIL_VERIFICATION_TEMPLATE_ID);
+		const data = await apiInstance.sendTransacEmail(emailVerification);
+		res.status(201).redirect('/auth/login');
 		console.log('Confirmation Sent! Returned data ' + JSON.stringify(data));
-		res.status(202).redirect('/');
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}
 		next(err);
+	}
+};
+
+exports.getVerification = async (req, res, next) => {
+	const token = req.params.token;
+	try {
+		const pendingUser = await PendingUser.findOne({
+			where: {
+				token: token,
+				tokenTimeout: {
+					[Op.gt]: Date.now(),
+				},
+			},
+		});
+		if (!pendingUser) {
+			req.flash('error', 'Invalid request or reset link has expired');
+			await req.session.save();
+			return res.status(401).redirect('/signup');
+		}
+		const user = await User.create({
+			username: pendingUser.username,
+			email: pendingUser.email,
+			password: pendingUser.password,
+			avatar: `https://avatars.dicebear.com/api/big-smile/:${pendingUser.username}.svg`,
+		});
+		await pendingUser.destroy();
+		await user.createCart();
+
+		req.flash('success', 'Email Verified!');
+		await req.session.save();
+		res.status(202).redirect('/auth/login');
+		confirmationEmail = {
+			to: [
+				{
+					email: user.email,
+					name: user.username,
+				},
+			],
+			templateId: +process.env.SIB_ACCOUNT_CONFIRMATION_TEMPLATE_ID,
+			params: {
+				FULLNAME: user.username,
+				EMAIL: user.email,
+				BONGOBOOKSURL: process.env.BONGOBOOKSURL,
+				LOGIN: process.env.LOGINURL,
+			},
+		};
+		const data = await apiInstance.sendTransacEmail(confirmationEmail);
+		console.log('Confirmation Sent! Returned data ' + JSON.stringify(data));
+	} catch (err) {
+		console.log(err);
 	}
 };
 
@@ -172,17 +243,10 @@ exports.postPasswordReset = async (req, res, next) => {
 					name: user.username,
 				},
 			],
-			templateId: process.env.SIB_PASSWORD_RESET_TEMPLATE_ID,
+			templateId: +process.env.SIB_PASSWORD_RESET_TEMPLATE_ID,
 			params: {
 				FULLNAME: user.firstName + ' ' + user.lastName,
-				TOKEN:
-					process.env.HOST_PROTOCOL +
-					'://' +
-					process.env.HOST +
-					':' +
-					process.env.HOST_PORT +
-					'/reset/' +
-					token,
+				TOKEN: process.env.BONGOBOOKSURL + '/auth/reset/' + token,
 			},
 		};
 		const data = await apiInstance.sendTransacEmail(passwordResetEmail);
@@ -209,7 +273,7 @@ exports.getResetNow = async (req, res, next) => {
 		if (!user) {
 			req.flash('error', 'Invalid request or reset link has expired');
 			await req.session.save();
-			return res.status(401).redirect('/reset');
+			return res.status(401).redirect('/auth/reset');
 		}
 		res.status(202).render('auth/reset-now', {
 			pageTitle: 'Password Reset',
@@ -227,7 +291,6 @@ exports.getResetNow = async (req, res, next) => {
 exports.postResetNow = async (req, res, next) => {
 	const token = req.body.token;
 	const newPassword = req.body.newPassword;
-	const confirmNewPassword = req.body.confirmNewPassword;
 
 	try {
 		const user = await User.findOne({
@@ -250,7 +313,7 @@ exports.postResetNow = async (req, res, next) => {
 		await user.save();
 		req.flash('success', 'Password changed!');
 		await req.session.save();
-		res.status(202).redirect('/login');
+		res.status(202).redirect('/auth/login');
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;

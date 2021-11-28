@@ -46,7 +46,6 @@ router.post(
 			.isEmpty()
 			.withMessage('Username cannot be empty.')
 			.custom((value, { req }) => {
-				console.log(value);
 				return User.findOne({ where: { username: value } }).then(
 					(user) => {
 						if (user) {
@@ -86,6 +85,9 @@ router.post(
 	],
 	authController.postSignup
 );
+
+// GET -> /verification
+router.get('/verification/:token', authController.getVerification);
 
 // POST -> /auth/logout
 router.post('/logout', isAuth, authController.postSignout);

@@ -6,6 +6,7 @@ const Publication = require('../models/publication');
 const Rating = require('../models/rating');
 const Review = require('../models/review');
 const BookImage = require('../models/book-image');
+const User = require('../models/user');
 
 exports.getIndex = async (req, res, next) => {
 	const page = +req.query.page || 1;
@@ -100,6 +101,13 @@ exports.getBook = async (req, res, next) => {
 				},
 				{
 					model: Review,
+					include: [
+						{
+							model: User,
+							required: true,
+							attributes: ['username', 'avatar'],
+						},
+					],
 				},
 				{ model: BookImage },
 			],

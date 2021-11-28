@@ -46,6 +46,7 @@ exports.getBooks = async (req, res, next) => {
 exports.getAddBook = async (req, res, next) => {
 	try {
 		res.status(200).render('admin/edit-book', {
+			edit: false,
 			pageTitle: 'Add Book',
 			path: '/admin/add-book',
 		});
@@ -406,6 +407,7 @@ exports.getEditBook = async (req, res, next) => {
 			if (book) {
 				console.log(book);
 				res.status(200).render('admin/edit-book', {
+					edit: editing,
 					book: book,
 					pageTitle: 'Editing ' + book.title,
 					path: '/admin/edit-book',
@@ -422,10 +424,7 @@ exports.getEditBook = async (req, res, next) => {
 			next(err);
 		}
 	} else {
-		if (!err.statusCode) {
-			err.statusCode = 500;
-		}
-		next(err);
+		req.status(404).redirect('/books');
 	}
 };
 
@@ -625,6 +624,7 @@ exports.postDeleteBook = async (req, res, next) => {
 exports.getAddAuthor = async (req, res, next) => {
 	try {
 		res.status(200).render('admin/add-author', {
+			edit: false,
 			pageTitle: 'Add Author',
 			path: '/admin/add-author',
 		});
@@ -670,6 +670,24 @@ exports.postAuthor = async (req, res, next) => {
 		if (image) {
 			deleteFile(image.path);
 		}
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getEditAuthor = async (req, res, next) => {
+	const authorId = req.params.authorId;
+	try {
+		const author = await Author.findByPk(authorId);
+		res.status(200).render('admin/add-author', {
+			author: author,
+			edit: true,
+			pageTitle: 'Edit Author',
+			path: '/admin/edit-author',
+		});
+	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}
@@ -783,6 +801,24 @@ exports.postPublication = async (req, res, next) => {
 	}
 };
 
+exports.getEditPublication = async (req, res, next) => {
+	const publicationId = req.params.publicationId;
+	try {
+		const publication = await Publication.findByPk(publicationId);
+		res.status(200).render('admin/add-publication', {
+			publication: publication,
+			edit: true,
+			pageTitle: 'Edit Publication',
+			path: '/admin/edit-publication',
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
 exports.postEditPublication = async (req, res, next) => {
 	const publicationId = req.body.id;
 	const name = req.body.name;
@@ -882,6 +918,24 @@ exports.postGenre = async (req, res, next) => {
 		if (image) {
 			deleteFile(image.path);
 		}
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.getEditGenre = async (req, res, next) => {
+	const genreId = req.params.genreId;
+	try {
+		const genre = await Genre.findByPk(genreId);
+		res.status(200).render('admin/add-genre', {
+			genre: genre,
+			edit: true,
+			pageTitle: 'Edit Genre',
+			path: '/admin/edit-genre',
+		});
+	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}

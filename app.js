@@ -41,7 +41,7 @@ const Review = require('./models/review');
 
 const app = express();
 
-// const csrfProtection = csurf(); //uncomment for csrf protection, needs csrf token in every view
+const csrfProtection = csurf(); //uncomment for csrf protection, needs csrf token in every view
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -58,7 +58,7 @@ app.use(
 	})
 );
 
-// app.use(csrfProtection); //uncomment for csrf
+app.use(csrfProtection); //uncomment for csrf
 app.use(flash());
 
 app.set('view engine', 'ejs');

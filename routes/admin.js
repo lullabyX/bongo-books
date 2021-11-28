@@ -53,7 +53,10 @@ router.post(
 	adminController.postAuthor
 );
 
-// POST -> /admin/edit-genre
+// GET -> /admin/edit-author/authorId
+router.get('/edit-author/:authorId', isAdmin, adminController.getEditAuthor);
+
+// POST -> /admin/edit-author
 router.post(
 	'/edit-author',
 	isAdmin,
@@ -71,6 +74,9 @@ router.post(
 	uploadController.single,
 	adminController.postPublication
 );
+
+// GET -> /admin/edit-publication/:publicationId
+router.get('/edit-publication/:publicationId', isAdmin, adminController.getEditPublication);
 
 // POST -> /admin/edit-publication
 router.post(
@@ -90,6 +96,9 @@ router.post(
 	uploadController.single,
 	adminController.postGenre
 );
+
+// GET -> /admin/edit-genre/genreId
+router.get('/edit-genre/:genreId', isAdmin, adminController.getEditAuthor);
 
 // POST -> /admin/edit-genre
 router.post(
