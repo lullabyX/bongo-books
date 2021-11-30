@@ -1,12 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title><%= pageTitle %></title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="css/style.css" rel="stylesheet">
-    </head>
-    <body>
-    <h1>Products will be shown here</h1>
-    </body>
+
+<head>
+    <title>
+        <%= pageTitle %>
+    </title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <%- include('../includes/styles.ejs') %>
+</head>
+
+<body>
+    <%- include('../includes/navbar.ejs') %>
+
+        <main>
+            <% if (books.length> 0) { %>
+
+                <div class="ui middle aligned center aligned grid" style="margin-top:20px;">
+                    <!-- <div class="column" style="width: 1200px;align-items: center;"> -->
+                        <div class="ui four cards" style="align-items: center;">
+
+                            <% for (let book of books) { %>
+
+
+                                <div class="card" style="width:250px;align-items:center;" id="card_<%= book.id %>">
+
+                                    <div class="image" style="width:150px;margin-top: 8px;">
+
+                                        <img src="<%= book.bookImages[0].imageUrl %> ">
+                                    </div>
+
+                                    <div class="content" style="align-items: center;text-align: center;">
+
+                                        <div class="header">
+                                            <a href="/book-detail/<%= book.id %> ">
+                                                <%= book.title %>
+                                            </a>
+                                        </div>
+                                        <div class="meta">
+                                            <%= book.authors[0].name %><br>
+
+                                        </div>
+                                        <div class="description">
+                                            <b>Price: <%= book.price %> USD </b>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="extra">
+                                        <div class="ui bottom attached button">
+                                            <i class="shopping cart icon"></i>
+                                            <a href="">
+                                                Add to cart
+                                            </a>
+                                        </div>
+                                    </div>
+
+
+                                    <% if (isAdmin) { %>
+                                        <div class="extra">
+
+                                            <div class="ui two buttons">
+                                                <div class="ui basic green button">
+                                                    <a href="/admin/edit-book/<%= book.id %>?edit=true">
+                                                        Edit
+                                                    </a>
+                                                </div>
+                                                <div class="ui basic red button">
+                                                    <a
+                                                        onclick="postDeleteBook('/admin/delete-book', '<%= book.id %>', this)">
+                                                        Delete
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <% } %>
+
+
+                                </div>
+                                <% } %>
+                        </div>
+                    <!-- </div> -->
+                </div>
+
+
+                <% } else { %>
+                    <h1>No Products Found!</h1>
+                    <% } %>
+        </main>
+
+
+
+
+</body>
+
 </html>

@@ -1,12 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title><%= pageTitle %></title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="css/style.css" rel="stylesheet">
-    </head>
-    <body>
-    <h1>Detail of book will be shown here</h1>
-    </body>
+
+<head>
+  <title>
+    <%= pageTitle %>
+  </title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%- include('../includes/styles.ejs') %>
+</head>
+
+<body>
+  <%- include('../includes/navbar.ejs') %>
+
+    <div class="ui middle aligned center aligned grid" style="margin-top:20px;">
+      <div class="column" style="width: 750px;">
+
+        <div class="ui placeholder segment">
+          <div class="ui internally celled grid">
+
+            <div class="five wide column">
+              <div class="ui centered card">
+                <img style="height: 100%; width: 100%;" src="<%= book.bookImages[0].imageUrl %> ">
+              </div>
+            </div>
+            <div class="eight wide column" align=left>
+
+              <div class="ui card" style="box-shadow: none;background-color: transparent;height: 100%;width: 100%;">
+                <div class="content">
+                  <div class="header">
+                    <h1 style="margin: 0px;">
+                      <%= book.title %>
+                    </h1>
+
+                  </div>
+                  <div class="meta">
+                    <a>
+                      <h4>
+                        <%= book.authors[0].name %>
+                      </h4>
+                    </a>
+                    Rating: <%= book.rating %>
+                  </div>
+
+                  <div class="description">
+                    <p>
+                      <%= book.description %>
+                    </p>
+                  </div>
+
+
+
+                </div>
+
+                <div class="extra">
+                  <!-- <div class="ui two buttons"> -->
+                  <button class="ui button left floated"><a href="/user/cart">Add to cart</a></button>
+                  <button class="ui button right floated"><a href="#review">Add review</a></button>
+                  <!-- <button class="ui button left floated">Edit book</button> -->
+                  <!-- <button class="ui button">Delete book</button> -->
+                  <!-- </div> -->
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+
+
+
+        <h4 class="ui horizontal divider header">
+          <i class="book icon"></i>
+          Specifications
+        </h4>
+        <table class="ui definition table">
+          <tbody>
+            <tr>
+              <td class="two wide column">Title</td>
+              <td>
+                <%= book.title %>
+              </td>
+            </tr>
+            <tr>
+              <td>Price</td>
+              <td>
+                <%= book.price %> USD
+              </td>
+            </tr>
+            <tr>
+              <td>Author</td>
+              <td>
+                <div class="ui bulleted list">
+                  <% for( author of book.authors ) { %>
+                    <div class="item">
+                      <a>
+                        <%= author.name %>
+                      </a>
+                    </div>
+                    <% } %>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Publication</td>
+              <td>
+                <%= book.publication.name %>
+              </td>
+            </tr>
+
+            <tr>
+              <td>ISBN</td>
+              <td>
+                <%= book.ISBN %>
+              </td>
+            </tr>
+
+            <tr>
+              <td>Year</td>
+              <td>
+                <%= book.publishDate %>
+              </td>
+            </tr>
+
+            <tr>
+              <td>Genres</td>
+              <td>
+                <% let names=[]; for (genre of book.genres) { names.push(genre.name); } %>
+                  <%= names.join(", ") %>
+              </td>
+            </tr>
+
+            <tr>
+              <td>Tags</td>
+              <td>
+                <%
+                  names = [];
+                  for (tag of book.tags) {
+                    names.push(tag.name);
+                  }
+                %>
+                <%= names.join(" , ") %>
+              </td>
+            </tr>
+
+            <tr>
+              <td>Language</td>
+              <td><%= book.language %></td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+        <button class=" ui button">
+          <a href="/admin/edit-book/<%= book.id %>?edit=true">Edit book</a>
+        </button>
+        <button class="ui button">
+          <a onclick="postDeleteBook('/admin/delete-book', '<%= book.id %>', this)">
+            Delete book
+          </a>
+        </button>
+
+        <h4 class=" ui horizontal divider header">
+          <i class="list icon"></i>
+          Reviews
+        </h4>
+        <form class="ui form" id="review" action="/user/review/add" method="post">
+          <div class="field">
+          <textarea type="text" rows="6" name="review" placeholder="Write a review..." style="width: 100%;"></textarea>
+          </div>
+          <input type="hidden" name="bookId" value="<%= book.id %>" >
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" >
+          <button class="ui button" type="submit">Add review</button>
+        </form>
+
+        <div class="ui feed">
+          <% for( let review of book.reviews ) { %>
+            <div class="event">
+              <div class="label">
+                <img src="<%= review.user.avatar %> ">
+              </div>
+              <div class="content">
+                <div class="summary">
+                  <a class="user">
+                    <%= review.user.username %>
+                  </a> added a review on
+                  <div class="date">
+                    <%= review.createdAt %>
+                  </div>
+                </div>
+                <div class="extra text">
+                  <%= review.review %>
+                </div>
+              </div>
+            </div>
+          <% } %>
+
+        </div>
+
+
+
+
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
 </html>

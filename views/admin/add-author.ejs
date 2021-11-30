@@ -1,12 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title><%= pageTitle %></title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="css/style.css" rel="stylesheet">
-    </head>
-    <body>
-    
-    </body>
+
+<head>
+    <title>
+        <%= pageTitle %>
+    </title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <%- include('../includes/styles.ejs') %>
+
+        <style type="text/css">
+            body>.grid {
+                height: 80%;
+            }
+
+            .column {
+                max-width: 650px;
+            }
+
+            .ui.label {
+                width: 100px;
+            }
+
+            .ui.labeled.input {
+                height: 40px;
+            }
+        </style>
+
+</head>
+
+<body>
+    <%- include('../includes/navbar.ejs') %>
+
+        <div class="ui middle aligned center aligned grid">
+            <div class=" column">
+
+                <h2 class="ui image header">
+                    <div class="content">
+                        Add author
+                    </div>
+                </h2>
+
+                <form class="ui form" action="/admin/add-author?_csrf=<%= csrfToken %>" enctype='multipart/form-data' method="post">
+                    <div class="field">
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                Name
+                            </div>
+                            <input type="text" name="name" placeholder="">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                Photo
+                            </div>
+                            <input type="file" name="image" accept="image/*">
+
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="ui labeled input" style="height: 100px;">
+                            <div class="ui label">
+                                Description
+                            </div>
+                            <textarea type="text" rows="4" name="description" placeholder="Description"></textarea>
+                        </div>
+                    </div>
+
+                    <button class="ui button" type="submit">Add author</button>
+                </form>
+
+            </div>
+        </div>
+
+
+
+</body>
+
 </html>

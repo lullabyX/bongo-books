@@ -1,12 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title><%= pageTitle %></title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="css/style.css" rel="stylesheet">
-    </head>
-    <body>
-    
-    </body>
+
+<head>
+    <title>
+        <%= pageTitle %>
+    </title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <%- include('../includes/styles.ejs') %>
+</head>
+
+<body>
+    <%- include('../includes/navbar.ejs') %>
+
+        <div class="ui middle aligned center aligned grid" style="margin-top:20px;">
+            <div class="column" style="width: 750px;">
+
+                <div class="ui placeholder segment">
+                    <div class="ui internally celled grid">
+
+                        <div class="five wide column">
+                            <div class="ui centered card">
+
+                                <!-- <div class="content" style="object-fit: contain;"> -->
+
+                                <img style="height: 100%; width: 100%;" src="<%= user.avatar %> ">
+                                <!-- </div> -->
+
+
+                            </div>
+                        </div>
+                        <div class="eight wide column">
+
+                            <div class="ui card" style="box-shadow: none;background-color: transparent;height: 100%;width: 100%;">
+                                <div class="content">
+                                  <div class="header">
+                                    <h1 style="margin: 0px;">
+                                      <%= user.username %>
+                                    </h1>
+
+                                  </div>
+                                  <div class="meta">
+                                    <a>
+                                      <h4>
+                                        <%= user.email %>
+                                      </h4>
+                                    </a>
+
+                                  </div>
+
+                                  <div class="description">
+                                    <p></p>
+                                  </div>
+
+
+
+                                </div>
+
+                                <div class="extra">
+                                  <button class="ui button">Edit profile</button>
+
+                                </div>
+                              </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+
+
+
+                <h4 class="ui horizontal divider header">
+                    <i class="address card icon"></i>
+                    Details
+                </h4>
+                <table class="ui definition table">
+                    <tbody>
+                        <tr>
+                            <td class="three wide column">Username</td>
+                            <td>
+                                <%= user.username %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>First Name</td>
+                            <td>
+                                <%= user.firstName %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Last Name</td>
+                            <td>
+                                <%= user.lastName %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Phone</td>
+                            <td>
+                                <%= user.primaryPhone %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Email</td>
+                            <td>
+                                <%= user.email %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Member Since</td>
+                            <td>
+                                <%= user.createdAt %>
+                            </td>
+                        </tr>
+
+
+
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
 </html>
