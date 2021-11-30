@@ -50,7 +50,7 @@ router.post(
 	'/add-author',
 	isAdmin,
 	uploadController.single,
-	adminController.postAuthor
+	adminController.postAddAuthor
 );
 
 // GET -> /admin/edit-author/authorId
@@ -72,7 +72,7 @@ router.post(
 	'/add-publication',
 	isAdmin,
 	uploadController.single,
-	adminController.postPublication
+	adminController.postAddPublication
 );
 
 // GET -> /admin/edit-publication/:publicationId
@@ -94,7 +94,7 @@ router.post(
 	'/add-genre',
 	isAdmin,
 	uploadController.single,
-	adminController.postGenre
+	adminController.postAddGenre
 );
 
 // GET -> /admin/edit-genre/genreId

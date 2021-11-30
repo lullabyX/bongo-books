@@ -13,11 +13,11 @@ const Review = sequelize.define('review', {
 		type: Sequelize.TEXT,
 		allowNull: false,
 	},
-	userId: {
-		type: Sequelize.INTEGER,
-		allowNull: false,
-		reference: { model: User, key: 'id' },
-	},
+	// userId: {
+	// 	type: Sequelize.INTEGER,
+	// 	allowNull: false,
+	// 	reference: { model: User, key: 'id' },
+	// },
 	varifiedPurchase: {
 		type: Sequelize.BOOLEAN,
 		allowNull: false,

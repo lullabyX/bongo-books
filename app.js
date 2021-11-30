@@ -41,7 +41,7 @@ const Review = require('./models/review');
 
 const app = express();
 
-const csrfProtection = csurf(); //uncomment for csrf protection, needs csrf token in every view
+// const csrfProtection = csurf(); //uncomment for csrf protection, needs csrf token in every view
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -49,7 +49,7 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use(
 	session({
-		secret: 'super secret key',
+		secret: process.env.SESSION_SECRET_KEY,
 		store: new SequelizeStore({
 			db: sequelize,
 		}),
@@ -58,7 +58,7 @@ app.use(
 	})
 );
 
-app.use(csrfProtection); //uncomment for csrf
+// app.use(csrfProtection); //uncomment for csrf
 app.use(flash());
 
 app.set('view engine', 'ejs');
@@ -143,6 +143,9 @@ Rating.belongsToMany(User, { through: RatingItem });
 
 Book.hasMany(Review);
 Review.belongsTo(Book);
+
+User.hasMany(Review);
+Review.belongsTo(User);
 
 sequelize
 	// .sync({ force: true })

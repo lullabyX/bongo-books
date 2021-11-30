@@ -104,7 +104,6 @@ exports.getBook = async (req, res, next) => {
 					include: [
 						{
 							model: User,
-							required: true,
 							attributes: ['username', 'avatar'],
 						},
 					],

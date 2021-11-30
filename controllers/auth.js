@@ -39,9 +39,12 @@ exports.postLogin = async (req, res, next) => {
 
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
-		return res.status(422).json({
-			message: errors.array(),
-		});
+		// return res.status(422).json({
+		// 	message: errors.array(),
+		// });
+		req.flash('error', errors.array());
+		await req.session.save();
+		return res.status(422).redirect('/auth/login');
 	}
 
 	try {
@@ -84,9 +87,12 @@ exports.postSignup = async (req, res, next) => {
 
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
-		return res.status(422).json({
-			message: errors.array(),
-		});
+		// return res.status(422).json({
+		// 	message: errors.array(),
+		// });
+		req.flash('error', errors.array());
+		await req.session.save();
+		return res.status(422).redirect('/auth/signup');
 	}
 
 	try {

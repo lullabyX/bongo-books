@@ -6,9 +6,8 @@ exports.notFound = (req, res, next) => {
 };
 
 exports.errorHandler = (error, req, res, next) => {
-	res.status(error.statusCode).json({
-		message: error.message,
-		data: error.data,
+	res.status(500).render('500.ejs', {
+		pageTitle: '500 | Internal Error',
+		path: '/500',
 	});
-	console.log(error.message);
 };

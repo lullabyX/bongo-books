@@ -83,7 +83,10 @@ exports.postCart = async (req, res, next) => {
 		await cart.addBook(book, {
 			through: { quantity: newQty },
 		});
-		res.status(202).redirect('/user/cart');
+		res.status(202).json({
+			message: `${book.title} is added to cart`,
+			bookId: book.id,
+		});
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -360,9 +363,12 @@ exports.postEditBook = async (req, res, next) => {
 				deleteFile(image.path);
 			});
 		}
-		return res.status(422).json({
-			message: errors.array(),
-		});
+		// return res.status(422).json({
+		// 	message: errors.array(),
+		// });
+		req.flash('error', errors.array());
+		await req.session.save();
+		return res.status(422).redirect('/user/edit-book');
 	}
 
 	try {
@@ -541,9 +547,12 @@ exports.postProfile = async (req, res, next) => {
 				if (image) {
 					deleteFile(image.path);
 				}
-				return res.status(422).json({
-					message: 'username already exist',
-				});
+				// return res.status(422).json({
+				// 	message: 'username already exist',
+				// });
+				req.flash('error', 'username already exist');
+				await req.session.save();
+				return res.status(422).redirect('/user/profile');
 			}
 		}
 		const user = await User.findByPk(req.user.id);

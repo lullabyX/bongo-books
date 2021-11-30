@@ -78,9 +78,12 @@ exports.postAddBook = async (req, res, next) => {
 				deleteFile(image.path);
 			});
 		}
-		return res.status(422).json({
-			message: errors.array(),
-		});
+		// return res.status(422).json({
+		// 	message: errors.array(),
+		// });
+		req.flash('error', errors.array());
+		await req.session.save();
+		return res.status(422).redirect('/admin/add-book');
 	}
 
 	try {
@@ -99,7 +102,6 @@ exports.postAddBook = async (req, res, next) => {
 		let genres = [];
 		// add authors
 		authorsArray.forEach(async (authorName) => {
-			console.log(authorName);
 			const author = await Author.findOne({
 				where: { name: authorName },
 			});
@@ -112,7 +114,6 @@ exports.postAddBook = async (req, res, next) => {
 		});
 		//add genres
 		genresArray.forEach(async (genreName) => {
-			console.log(genreName);
 			const genre = await Genre.findOne({
 				where: { name: genreName },
 			});
@@ -636,23 +637,26 @@ exports.getAddAuthor = async (req, res, next) => {
 	}
 };
 
-exports.postAuthor = async (req, res, next) => {
+exports.postAddAuthor = async (req, res, next) => {
 	const name = req.body.name;
 	const image = req.file;
 	const description = req.body.description;
 	try {
-		const imageUrl = '/' + image ? image.path : '';
+		const imageUrl = `/${image ? image.path : ''}`;
 		const author = await Author.findOne({ where: { name: name } });
 		if (author) {
 			if (image) {
 				deleteFile(image.path);
 			}
-			return res.status(303).json({
-				message: 'Author already exist',
-				name: name,
-				imageUrl: imageUrl,
-				description: description,
-			});
+			// return res.status(303).json({
+			// 	message: 'Author already exist',
+			// 	name: name,
+			// 	imageUrl: imageUrl,
+			// 	description: description,
+			// });
+			req.flash('error', 'Author already exists!');
+			await req.session.save();
+			return res.status(404).redirect('/admin/add-author');
 		}
 		await Author.create({
 			name: name,
@@ -660,12 +664,15 @@ exports.postAuthor = async (req, res, next) => {
 			description: description,
 		});
 
-		res.status(201).json({
-			message: 'Successfully Added Author',
-			name: name,
-			imageUrl: imageUrl,
-			description: description,
-		});
+		// res.status(201).json({
+		// 	message: 'Successfully Added Author',
+		// 	name: name,
+		// 	imageUrl: imageUrl,
+		// 	description: description,
+		// });
+		req.flash('success', 'Author Added!');
+		await req.session.save();
+		res.status(201).redirect('/admin/add-author');
 	} catch (err) {
 		if (image) {
 			deleteFile(image.path);
@@ -700,16 +707,18 @@ exports.postEditAuthor = async (req, res, next) => {
 	const name = req.body.name;
 	const image = req.file;
 	const description = req.body.description;
-	console.log(name);
 	try {
 		const author = await Author.findByPk(authorId);
 		if (!author) {
 			if (image) {
 				deleteFile(image.path);
 			}
-			return res.status(404).json({
-				message: 'Author not found. Check author id.',
-			});
+			// return res.status(404).json({
+			// 	message: 'Author not found. Check author id.',
+			// });
+			req.flash('error', 'Author not found!');
+			await req.session.save();
+			return res.status(404).redirect('/authors');
 		}
 		let imageUrl = author.imageUrl;
 		if (image) {
@@ -724,12 +733,15 @@ exports.postEditAuthor = async (req, res, next) => {
 
 		await author.save();
 
-		res.status(201).json({
-			message: 'Successfully Updated Author',
-			name: name,
-			imageUrl: imageUrl,
-			description: description,
-		});
+		// res.status(201).json({
+		// 	message: 'Successfully Updated Author',
+		// 	name: name,
+		// 	imageUrl: imageUrl,
+		// 	description: description,
+		// });
+		req.flash('success', 'Author Updated!');
+		await req.session.save();
+		res.status(201).redirect('/authors');
 	} catch {
 		if (image) {
 			deleteFile(image.path);
@@ -755,7 +767,7 @@ exports.getAddPublication = async (req, res, next) => {
 	}
 };
 
-exports.postPublication = async (req, res, next) => {
+exports.postAddPublication = async (req, res, next) => {
 	const name = req.body.name;
 	const image = req.file;
 	const description = req.body.description;
@@ -767,29 +779,32 @@ exports.postPublication = async (req, res, next) => {
 			if (image) {
 				deleteFile(image.path);
 			}
-			return res.status(303).json({
-				message: 'Publication already exist',
-				name: name,
-				imageUrl: imageUrl,
-				description: description,
-			});
+			// return res.status(303).json({
+			// 	message: 'Publication already exist',
+			// 	name: name,
+			// 	imageUrl: imageUrl,
+			// 	description: description,
+			// });
+			req.flash('error', 'Publication already exists!');
+			await req.session.save();
+			return res.status(404).redirect('/admin/add-publication');
 		}
-		let imageUrl;
-		if (image) {
-			imageUrl = '/' + image.path;
-		}
+		const imageUrl = `/${image ? image.path : ''}`;
 		await Publication.create({
 			name: name,
 			imageUrl: imageUrl,
 			description: description,
 		});
 
-		res.status(201).json({
-			message: 'Successfully Added Publication',
-			name: name,
-			imageUrl: imageUrl,
-			description: description,
-		});
+		// res.status(201).json({
+		// 	message: 'Successfully Added Publication',
+		// 	name: name,
+		// 	imageUrl: imageUrl,
+		// 	description: description,
+		// });
+		req.flash('success', 'Publication Added!');
+		await req.session.save();
+		res.status(201).redirect('/admin/add-publication');
 	} catch {
 		if (image) {
 			deleteFile(image.path);
@@ -831,16 +846,19 @@ exports.postEditPublication = async (req, res, next) => {
 			if (image) {
 				deleteFile(image.path);
 			}
-			return res.status(404).json({
-				message: 'Publication not found. Check publication id.',
-			});
+			// return res.status(404).json({
+			// 	message: 'Publication not found. Check publication id.',
+			// });
+			req.flash('error', 'Publication not found!');
+			await req.session.save();
+			return res.status(404).redirect('/publications');
 		}
 		let imageUrl = publication.imageUrl;
 		if (image) {
 			if (imageUrl) {
 				deleteFile(imageUrl);
 			}
-			imageUrl = image.path;
+			imageUrl = `/${image.path}`;
 		}
 		publication.name = name;
 		publication.imageUrl = imageUrl;
@@ -848,12 +866,15 @@ exports.postEditPublication = async (req, res, next) => {
 
 		await publication.save();
 
-		res.status(201).json({
-			message: 'Successfully Updated Publication',
-			name: name,
-			imageUrl: imageUrl,
-			description: description,
-		});
+		// res.status(201).json({
+		// 	message: 'Successfully Updated Publication',
+		// 	name: name,
+		// 	imageUrl: imageUrl,
+		// 	description: description,
+		// });
+		req.flash('success', 'Publication Updated!');
+		await req.session.save();
+		res.status(201).redirect('/publications');
 	} catch {
 		if (image) {
 			deleteFile(image.path);
@@ -879,7 +900,7 @@ exports.getAddGenre = async (req, res, next) => {
 	}
 };
 
-exports.postGenre = async (req, res, next) => {
+exports.postAddGenre = async (req, res, next) => {
 	const name = req.body.name;
 	const image = req.file;
 	const description = req.body.description;
@@ -889,31 +910,31 @@ exports.postGenre = async (req, res, next) => {
 			if (image) {
 				deleteFile(image.path);
 			}
-			return res.status(303).json({
-				message: 'Genre already exist',
-				name: name,
-				imageUrl: imageUrl,
-				description: description,
-			});
+			// return res.status(303).json({
+			// 	message: 'Genre already exist',
+			// 	name: name,
+			// 	imageUrl: imageUrl,
+			// 	description: description,
+			// });
+			req.flash('error', 'Genre already exists!');
+			await req.session.save();
+			return res.status(404).redirect('/admin/add-genre');
 		}
-		let imageUrl;
-		if (image) {
-			if (imageUrl) {
-				deleteFile(imageUrl);
-			}
-			imageUrl = '/' + image.path;
-		}
+		const imageUrl = `/${image ? image.path : ''}`;
 		await Genre.create({
 			name: name,
 			imageUrl: imageUrl,
 			description: description,
 		});
-		res.status(201).json({
-			message: 'Successfully Added Genre',
-			name: name,
-			imageUrl: imageUrl,
-			description: description,
-		});
+		// res.status(201).json({
+		// 	message: 'Successfully Added Genre',
+		// 	name: name,
+		// 	imageUrl: imageUrl,
+		// 	description: description,
+		// });
+		req.flash('success', 'Genre Added!');
+		await req.session.save();
+		res.status(201).redirect('/admin/add-genre');
 	} catch {
 		if (image) {
 			deleteFile(image.path);
@@ -954,16 +975,19 @@ exports.postEditGenre = async (req, res, next) => {
 			if (image) {
 				deleteFile(image.path);
 			}
-			return res.status(404).json({
-				message: 'Genre not found. Check genre id.',
-			});
+			// return res.status(404).json({
+			// 	message: 'Genre not found. Check genre id.',
+			// });
+			req.flash('error', 'Genre not found!');
+			await req.session.save();
+			return res.status(404).redirect('/genres');
 		}
 		let imageUrl = genre.imageUrl;
 		if (image) {
 			if (imageUrl) {
 				deleteFile(imageUrl);
 			}
-			imageUrl = '/' + image.path;
+			imageUrl = `/${image.path}`;
 		}
 		genre.name = name;
 		genre.imageUrl = imageUrl;
@@ -971,12 +995,15 @@ exports.postEditGenre = async (req, res, next) => {
 
 		await genre.save();
 
-		res.status(201).json({
-			message: 'Successfully Updated Genre',
-			name: name,
-			imageUrl: imageUrl,
-			description: description,
-		});
+		// res.status(201).json({
+		// 	message: 'Successfully Updated Genre',
+		// 	name: name,
+		// 	imageUrl: imageUrl,
+		// 	description: description,
+		// });
+		req.flash('success', 'Genre Updated!');
+		await req.session.save();
+		res.status(201).redirect('/genres');
 	} catch {
 		if (image) {
 			deleteFile(image.path);

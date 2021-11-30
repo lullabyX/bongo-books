@@ -22,8 +22,8 @@ router.post('/cart-delete-item', isAuth, userController.postCartDeleteItem);
 // GET -> /user/orders
 router.get('/orders', isAuth, userController.getOrders);
 
-// POST -> /user/orders
-router.post('/orders', isAuth, userController.postOrder);
+// // POST -> /user/orders
+// router.post('/orders', isAuth, userController.postOrder);
 
 // GET -> /user/add-book
 router.get('/add-book', isAuth, userController.getAddBook);
