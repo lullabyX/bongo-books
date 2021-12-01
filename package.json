@@ -1,44 +1,48 @@
 {
-    "name": "bongo-books",
-    "version": "1.0.0",
-    "description": "an awesome bookstore",
-    "main": "app.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "nodemon app.js"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/lullabyX/bongo-books.git"
-    },
-    "author": "Hassan Rabbi",
-    "license": "GPL-3.0-or-later",
-    "bugs": {
-        "url": "https://github.com/lullabyX/bongo-books/issues"
-    },
-    "homepage": "https://github.com/lullabyX/bongo-books#readme",
-    "devDependencies": {
-        "nodemon": "^2.0.12"
-    },
-    "dependencies": {
-        "bcrypt": "^5.0.1",
-        "connect-flash": "^0.1.1",
-        "connect-session-sequelize": "^7.1.2",
-        "crypto": "^1.0.1",
-        "csurf": "^1.11.0",
-        "dotenv": "^10.0.0",
-        "ejs": "^3.1.6",
-        "express": "^4.17.1",
-        "express-session": "^1.17.2",
-        "express-validator": "^6.13.0",
-        "move-file": "^3.0.0",
-        "multer": "^1.4.3",
-        "pdfkit": "^0.13.0",
-        "pg": "^8.7.1",
-        "pg-hstore": "^2.3.4",
-        "sequelize": "^6.6.5",
-        "sequelize-search-builder": "^0.11.0",
-        "sib-api-v3-sdk": "^8.2.1",
-        "stripe": "^8.184.0"
-    }
+	"name": "bongo-books",
+	"version": "1.0.0",
+	"description": "an awesome bookstore",
+	"main": "app.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start:dev": "nodemon app.js",
+		"start-server": "node app.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/lullabyX/bongo-books.git"
+	},
+	"author": "Hassan Rabbi",
+	"license": "GPL-3.0-or-later",
+	"bugs": {
+		"url": "https://github.com/lullabyX/bongo-books/issues"
+	},
+	"homepage": "https://github.com/lullabyX/bongo-books#readme",
+	"devDependencies": {
+		"nodemon": "^2.0.12"
+	},
+	"dependencies": {
+		"bcrypt": "^5.0.1",
+		"compression": "^1.7.4",
+		"connect-flash": "^0.1.1",
+		"connect-session-sequelize": "^7.1.2",
+		"crypto": "^1.0.1",
+		"csurf": "^1.11.0",
+		"dotenv": "^10.0.0",
+		"ejs": "^3.1.6",
+		"express": "^4.17.1",
+		"express-session": "^1.17.2",
+		"express-validator": "^6.13.0",
+		"helmet": "^4.6.0",
+		"morgan": "^1.10.0",
+		"move-file": "^3.0.0",
+		"multer": "^1.4.3",
+		"pdfkit": "^0.13.0",
+		"pg": "^8.7.1",
+		"pg-hstore": "^2.3.4",
+		"sequelize": "^6.6.5",
+		"sequelize-search-builder": "^0.11.0",
+		"sib-api-v3-sdk": "^8.2.1",
+		"stripe": "^8.184.0"
+	}
 }

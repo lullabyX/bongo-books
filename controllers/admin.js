@@ -8,7 +8,7 @@ const PendingBook = require('../models/pending-book');
 const Tag = require('../models/tag');
 const AuthorItem = require('../models/author-item');
 const GenreItem = require('../models/genre-items');
-const { deleteFile } = require('../util/filehelper');
+const { deleteFile, deleteMultipleFiles } = require('../util/filehelper');
 const fs = require('fs');
 const path = require('path');
 
@@ -71,6 +71,8 @@ exports.postAddBook = async (req, res, next) => {
 	const publishDate = req.body.publishDate;
 	const language = req.body.language;
 
+	let book;
+
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
 		if (images.length > 0) {
@@ -101,39 +103,61 @@ exports.postAddBook = async (req, res, next) => {
 		let authors = [];
 		let genres = [];
 		// add authors
-		authorsArray.forEach(async (authorName) => {
+		for (let i = 0; i < authorsArray.length; i++) {
+			const authorName = authorsArray[i];
 			const author = await Author.findOne({
 				where: { name: authorName },
 			});
 			if (!author) {
-				return res.status(404).json({
-					message: `Author ${authorName} is not found in our Database. Add author first.`,
-				});
+				// return res.status(404).json({
+				// 	message: `Author ${authorName} is not found in our Database. Add author first.`,
+				// });
+				req.flash(
+					'error',
+					`Author ${authorName} is not found in our Database.`
+				);
+				await req.session.save();
+				deleteMultipleFiles(images);
+				return res.status(422).redirect('/admin/add-book');
 			}
 			authors.push(author);
-		});
-		//add genres
-		genresArray.forEach(async (genreName) => {
+		}
+		for (let i = 0; i < genresArray.length; i++) {
+			const genreName = genresArray[i];
 			const genre = await Genre.findOne({
 				where: { name: genreName },
 			});
 			if (!genre) {
-				return res.status(404).json({
-					message: `Genre ${genreName} is not found in our Database. Add genre first.`,
-				});
+				// return res.status(404).json({
+				// 	message: `Author ${authorName} is not found in our Database. Add author first.`,
+				// });
+				req.flash(
+					'error',
+					`Genre ${genreName} is not found in our Database.`
+				);
+				await req.session.save();
+				deleteMultipleFiles(images);
+				return res.status(422).redirect('/admin/add-book');
 			}
 			genres.push(genre);
-		});
+		}
 
 		const publication = await Publication.findOne({
 			where: { name: publicationName },
 		});
 		if (!publication) {
-			return res.status(404).json({
-				message: `Publication ${publicationName} does not exist in our database. Add publication?`,
-			});
+			// return res.status(404).json({
+			// 	message: `Publication ${publicationName} does not exist in our database. Add publication?`,
+			// });
+			req.flash(
+				'error',
+				`Publication ${publicationName} is not found in our Database.`
+			);
+			await req.session.save();
+			deleteMultipleFiles(images);
+			return res.status(422).redirect('/admin/add-book');
 		}
-		const book = await req.user.createBook({
+		book = await req.user.createBook({
 			title: title,
 			price: price,
 			ISBN: ISBN,
@@ -150,32 +174,37 @@ exports.postAddBook = async (req, res, next) => {
 				name: tag,
 			});
 		});
-		images.forEach(async (image) => {
-			const source = path.join(__dirname, '../', image.path);
-			const imagePath = 'images/book/' + book.id;
-			let dest = path.join(__dirname, '../', imagePath);
+		if (images.length > 0) {
+			images.forEach(async (image) => {
+				const source = path.join(__dirname, '../', image.path);
+				const imagePath = 'images/book/' + book.id;
+				let dest = path.join(__dirname, '../', imagePath);
 
-			if (!fs.existsSync(dest)) {
-				fs.mkdirSync(dest);
-			}
-			dest = dest + '/' + image.filename;
-			await book.createBookImage({
-				imageUrl: '/' + imagePath + '/' + image.filename,
-			});
-			fs.rename(source, dest, (err) => {
-				if (err) {
-					throw err;
+				if (!fs.existsSync(dest)) {
+					fs.mkdirSync(dest, { recursive: true });
 				}
+				dest = dest + '/' + image.filename;
+				await book.createBookImage({
+					imageUrl: '/' + imagePath + '/' + image.filename,
+				});
+				fs.rename(source, dest, (err) => {
+					if (err) {
+						throw err;
+					}
+				});
 			});
-		});
+		} else {
+			await book.createBookImage({
+				imageUrl: '/',
+			});
+		}
 
 		res.status(201).redirect('/admin/books');
 	} catch (err) {
-		if (images.length > 0) {
-			images.forEach((image) => {
-				deleteFile(image.path);
-			});
+		if (book) {
+			await book.destroy();
 		}
+		deleteMultipleFiles(images);
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}
@@ -218,12 +247,12 @@ exports.getPendingBook = async (req, res, next) => {
 	try {
 		const pendingBook = await PendingBook.findByPk(pendingBookId);
 		if (!pendingBook) {
-			req.flash('error', 'Book not found in Pending-Book.');
+			req.flash('error', 'Book not found in Pending-Books.');
 			await req.session.save();
 			return res.status(404).redirect('/admin/pending-books');
 		}
 		res.status(200).render('admin/pending-book', {
-			books: pendingBook,
+			book: pendingBook,
 			pageTitle: 'Pending ' + pendingBook.title,
 			path: '/admin/pending-book',
 		});
@@ -235,23 +264,24 @@ exports.getPendingBook = async (req, res, next) => {
 	}
 };
 
-exports.postVerifyPendingBooks = async (req, res, next) => {
+exports.postVerifyPendingBook = async (req, res, next) => {
 	const pendingBookId = req.body.pendingBookId;
 
-	const ISBN = req.body.ISBN;
-	const publicationName = req.body.publicationName;
-	const description = req.body.description;
-	const publishDate = req.body.publishDate;
-	const language = req.body.language;
-	const authorsString = req.body.authors;
-	const tagsString = req.body.tags;
-	const genresString = req.body.genres;
+	const ISBN = req.body.ISBN || '';
+	const publicationName = req.body.publicationName || '';
+	const description = req.body.description || '';
+	const publishDate = req.body.publishDate || '';
+	const language = req.body.language || '';
+	const authorsString = req.body.authors || '';
+	const tagsString = req.body.tags || '';
+	const genresString = req.body.genres || '';
+	let book;
 
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
-		return res.status(422).json({
-			message: errors.array(),
-		});
+		req.flash('error', errors.array());
+		await req.session.save();
+		return res.status(422).redirect(`/admin/pending-book/${pendingBookId}`);
 	}
 
 	try {
@@ -268,49 +298,68 @@ exports.postVerifyPendingBooks = async (req, res, next) => {
 		});
 		let authors = [];
 		let genres = [];
-		// add authos
-		authorsArray.forEach(async (authorName) => {
-			console.log(authorName);
+		// add authors
+		for (let i = 0; i < authorsArray.length; i++) {
+			const authorName = authorsArray[i];
 			const author = await Author.findOne({
 				where: { name: authorName },
 			});
 			if (!author) {
-				return res.status(404).json({
-					message: `Author ${authorName} is not found in our Database. Add author first.`,
-				});
+				// return res.status(404).json({
+				// 	message: `Author ${authorName} is not found in our Database. Add author first.`,
+				// });
+				req.flash(
+					'error',
+					`Author ${authorName} is not found in our Database.`
+				);
+				await req.session.save();
+				return res
+					.status(422)
+					.redirect(`/admin/pending-book/${pendingBookId}`);
 			}
 			authors.push(author);
-		});
+		}
 		//add genres
-		genresArray.forEach(async (genreName) => {
-			console.log(genreName);
+		for (let i = 0; i < genresArray.length; i++) {
+			const genreName = genresArray[i];
 			const genre = await Genre.findOne({
 				where: { name: genreName },
 			});
 			if (!genre) {
-				return res.status(404).json({
-					message: `Genre ${genreName} is not found in our Database. Add author first.`,
-				});
+				// return res.status(404).json({
+				// 	message: `Author ${authorName} is not found in our Database. Add author first.`,
+				// });
+				req.flash(
+					'error',
+					`Genre ${genreName} is not found in our Database.`
+				);
+				await req.session.save();
+				return res
+					.status(422)
+					.redirect(`/admin/pending-book/${pendingBookId}`);
 			}
 			genres.push(genre);
-		});
+		}
 		const publication = await Publication.findOne({
 			where: { name: publicationName },
 		});
 		if (!publication) {
-			return res.status(404).json({
-				message: `Publication ${publicationName} does not exist in our database. Add publication?`,
-			});
+			req.flash(
+				'error',
+				`publication ${publication} is not found in our Database.`
+			);
+			await req.session.save();
+			return res
+				.status(422)
+				.redirect(`/admin/pending-book/${pendingBookId}`);
 		}
-		const pendingBook = await PendingBook.findOne({
-			where: { id: pendingBookId },
-		});
+		const pendingBook = await PendingBook.findByPk(pendingBookId);
 		if (!pendingBook) {
 			const error = new Error('Book not found in Pending-Books.');
 			error.statusCode = 404;
 			throw error;
 		}
-		const book = await Book.create({
+		book = await Book.create({
 			title: pendingBook.title,
 			ISBN: ISBN,
 			price: pendingBook.price,
@@ -323,8 +372,13 @@ exports.postVerifyPendingBooks = async (req, res, next) => {
 		});
 		await publication.addBook(book);
 		await book.addAuthors(authors);
-		await book.addAuthors(genres);
+		await book.addGenres(genres);
 		const pendingBookImages = await pendingBook.getPendingBookImages();
+		tagsArray.forEach(async (tag) => {
+			await book.createTag({
+				name: tag,
+			});
+		});
 		if (pendingBookImages.length > 0) {
 			pendingBookImages.forEach(async (image) => {
 				const source = path.join(__dirname, '../', image.imageUrl);
@@ -332,32 +386,31 @@ exports.postVerifyPendingBooks = async (req, res, next) => {
 				let dest = path.join(__dirname, '../', imagePath);
 
 				if (!fs.existsSync(dest)) {
-					fs.mkdirSync(dest);
+					fs.mkdirSync(dest, { recursive: true });
 				}
-				const filename = path(image.imageUrl).basename;
+				const filename = path.basename(image.imageUrl);
 				dest = dest + '/' + filename;
 				await book.createBookImage({
 					imageUrl: '/' + imagePath + '/' + filename,
 				});
-				fs.rename(source, dest, (err) => {
-					if (err) {
-						throw err;
-					}
-				});
+				fs.renameSync(source, dest);
 			});
-			await book.createBookImages();
+		} else {
+			await book.createBookImage({
+				imageUrl: '/',
+			});
 		}
 		await pendingBook.destroy();
-		tagsArray.forEach(async (tag) => {
-			await book.createTag({
-				name: tag,
-			});
-		});
+		req.flash('success', `Book ${book.title} is varified and listed.`);
+		await req.session.save();
 		res.status(202).redirect('/admin/pending-books');
 		// res.status(201).json({
 		// 	message: 'success',
 		// });
 	} catch (err) {
+		if (book) {
+			await book.destroy();
+		}
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}
@@ -381,9 +434,10 @@ exports.postDeletePendingBook = async (req, res, next) => {
 					deleteFile(image.imageUrl);
 				});
 			}
-			await pendingBook.removeBookImages();
 			await pendingBook.destroy();
-			res.status(200).redirect('/admin/pending-books');
+			res.status(202).json({
+				message: 'Pending book is deleted',
+			});
 		}
 	} catch (err) {
 		if (!err.statusCode) {
@@ -450,9 +504,9 @@ exports.postEditBook = async (req, res, next) => {
 				deleteFile(image.path);
 			});
 		}
-		return res.status(422).json({
-			message: errors.array(),
-		});
+		req.flash('error', errors.array());
+		await req.session.save();
+		req.status(422).redirect(`/admin/edit-book/${bookId}`);
 	}
 
 	const authorsArray = await updatedAuthorsString.split(',').map((author) => {
@@ -476,46 +530,68 @@ exports.postEditBook = async (req, res, next) => {
 
 		if (book) {
 			/////////delete existing publication, tags, genre////////////
-			GenreItem.destroy({ where: { bookId: book.id } });
-			AuthorItem.destroy({ where: { bookId: book.id } });
-			Tag.destroy({ where: { bookId: book.id } });
+			await GenreItem.destroy({ where: { bookId: book.id } });
+			await AuthorItem.destroy({ where: { bookId: book.id } });
+			await Tag.destroy({ where: { bookId: book.id } });
 			////////////////////////////////////////////////////////////
 			let authors = [];
 			let genres = [];
 			// add authors
-			authorsArray.forEach(async (authorName) => {
-				console.log(authorName);
+			for (let i = 0; i < authorsArray.length; i++) {
+				const authorName = authorsArray[i];
 				const author = await Author.findOne({
 					where: { name: authorName },
 				});
 				if (!author) {
-					return res.status(404).json({
-						message: `Author ${authorName} is not found in our Database. Add author first.`,
-					});
+					// return res.status(404).json({
+					// 	message: `Author ${authorName} is not found in our Database. Add author first.`,
+					// });
+					req.flash(
+						'error',
+						`Author ${authorName} is not found in our Database.`
+					);
+					await req.session.save();
+					deleteMultipleFiles(updatedImages);
+					return res
+						.status(422)
+						.redirect(`/admin/edit-book/${bookId}`);
 				}
 				authors.push(author);
-			});
+			}
 			//add genres
-			genresArray.forEach(async (genreName) => {
-				console.log(genreName);
+			for (let i = 0; i < genresArray.length; i++) {
+				const genreName = genresArray[i];
 				const genre = await Genre.findOne({
 					where: { name: genreName },
 				});
 				if (!genre) {
-					return res.status(404).json({
-						message: `Genre ${genreName} is not found in our Database. Add author first.`,
-					});
+					// return res.status(404).json({
+					// 	message: `Author ${authorName} is not found in our Database. Add author first.`,
+					// });
+					req.flash(
+						'error',
+						`Genre ${genreName} is not found in our Database.`
+					);
+					await req.session.save();
+					deleteMultipleFiles(updatedImages);
+					return res
+						.status(422)
+						.redirect(`/admin/edit-book/${bookId}`);
 				}
 				genres.push(genre);
-			});
+			}
 
 			const publication = await Publication.findOne({
 				where: { name: updatedPublicationName },
 			});
 			if (!publication) {
-				return res.status(404).json({
-					message: `Publication ${publicationName} does not exist in our database. Add publication?`,
-				});
+				req.flash(
+					'error',
+					`Publication ${publication.name} is not found in our Database.`
+				);
+				await req.session.save();
+				deleteMultipleFiles(updatedImages);
+				return res.status(422).redirect(`/admin/edit-book/${bookId}`);
 			}
 			book.title = updatedTitle;
 			book.price = updatedPrice;
@@ -551,7 +627,7 @@ exports.postEditBook = async (req, res, next) => {
 					let dest = path.join(__dirname, '../', imagePath);
 
 					if (!fs.existsSync(dest)) {
-						fs.mkdirSync(dest);
+						fs.mkdirSync(dest, { recursive: true });
 					}
 					dest = dest + '/' + image.filename;
 					await book.createBookImage({
@@ -559,7 +635,7 @@ exports.postEditBook = async (req, res, next) => {
 					});
 					fs.rename(source, dest, (err) => {
 						if (err) {
-							throw err;
+							console.log(err);
 						}
 					});
 				});
@@ -609,10 +685,11 @@ exports.postDeleteBook = async (req, res, next) => {
 					deleteFile(image.imageUrl);
 				});
 			}
-			await book.removeBookImages();
 			await book.destroy();
 
-			res.status(200).redirect('/admin/books');
+			res.status(202).json({
+				message: 'Book is deleted',
+			});
 		}
 	} catch (err) {
 		if (!err.statusCode) {

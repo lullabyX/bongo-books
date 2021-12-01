@@ -7,7 +7,7 @@ module.exports = async (req, res, next) => {
 			res.locals.username = req.session.user.username;
 			res.locals.avatar = req.session.user.avatar;
 		}
-		// res.locals.csrfToken = req.csrfToken(); //uncomment for csrf
+		res.locals.csrfToken = req.csrfToken(); //uncomment for csrf
 		res.locals.errorMessage = req.flash('error');
 		res.locals.successMessage = req.flash('success');
 		next();

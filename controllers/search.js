@@ -151,7 +151,7 @@ exports.getFilteredSearch = async (req, res, next) => {
 			pricehigh = 9999999.0;
 		}
 		//ordertype sanitization
-		if (ordertype !== 'ASC' || ordertype !== 'DSC') {
+		if (ordertype !== 'ASC' || ordertype !== 'DESC') {
 			ordertype = 'ASC';
 		}
 		orderby =

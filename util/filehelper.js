@@ -4,7 +4,6 @@ const { nextTick } = require('process');
 
 exports.deleteFile = (filePath, cb) => {
 	const fullPath = path.join(__dirname, '../', filePath);
-	console.log(fullPath);
 	try {
 		fs.unlinkSync(fullPath, (err) => {
 			if (err) {
@@ -15,3 +14,12 @@ exports.deleteFile = (filePath, cb) => {
 		return 0;
 	}
 };
+
+exports.deleteMultipleFiles = (files) =>
+{
+	if (files.length > 0) {
+		files.forEach((image) => {
+			this.deleteFile(image.path);
+		});
+	}
+}

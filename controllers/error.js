@@ -6,6 +6,7 @@ exports.notFound = (req, res, next) => {
 };
 
 exports.errorHandler = (error, req, res, next) => {
+	console.log(error);
 	res.status(500).render('500.ejs', {
 		pageTitle: '500 | Internal Error',
 		path: '/500',

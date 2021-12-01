@@ -132,14 +132,15 @@ exports.getCheckout = async (req, res, next) => {
 		if (name == 'null null' || name == 'null ' || name == ' null') {
 			name = req.user.username;
 		}
+		console.log(books);
 		const stripeSession = await stripe.checkout.sessions.create({
 			payment_method_types: ['card'],
 			line_items: books.map((book) => {
 				return {
 					name: book.title,
 					description: book.description,
-					amount: book.price * 100,
-					quantity: book.cartItem.quantity,
+					amount: (book.price * 100).toFixed(0),
+					quantity: +book.cartItem.quantity,
 					currency: 'usd',
 				};
 			}),
@@ -261,8 +262,9 @@ exports.postAddBook = async (req, res, next) => {
 	const images = req.files;
 	const price = req.body.price;
 	const ISBN = req.body.ISBN;
-	const publicationName = req.body.publicationName;
 	const description = req.body.description;
+
+	let pendingBook;
 
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
@@ -271,39 +273,48 @@ exports.postAddBook = async (req, res, next) => {
 				deleteFile(image.path);
 			});
 		}
-		return res.status(422).json({
-			message: errors.array(),
-		});
+		req.flash('error', errors.array());
+		await req.session.save();
+		return req.status(422).redirect('/user/add-book');
 	}
 
 	try {
-		const pendingBook = await req.user.createPendingBook({
+		pendingBook = await req.user.createPendingBook({
 			title: title,
 			price: price,
 			ISBN: ISBN,
 			description: description,
-			publicationName: publicationName,
 		});
-		images.forEach(async (image) => {
-			const source = path.join(__dirname, '../', image.path);
-			const imagePath = 'images/pending-book/' + pendingBook.id;
-			let dest = path.join(__dirname, '../', imagePath);
+		if (images.length > 0) {
+			images.forEach(async (image) => {
+				const source = path.join(__dirname, '../', image.path);
+				const imagePath = 'images/pending-book/' + pendingBook.id;
+				let dest = path.join(__dirname, '../', imagePath);
 
-			if (!fs.existsSync(dest)) {
-				fs.mkdirSync(dest);
-			}
-			dest = dest + '/' + image.filename;
-			await pendingBook.createPendingBookImage({
-				imageUrl: '/' + imagePath + '/' + image.filename,
-			});
-			fs.rename(source, dest, (err) => {
-				if (err) {
-					throw err;
+				if (!fs.existsSync(dest)) {
+					fs.mkdirSync(dest, { recursive: true });
 				}
+				dest = dest + '/' + image.filename;
+				await pendingBook.createPendingBookImage({
+					imageUrl: '/' + imagePath + '/' + image.filename,
+				});
+				fs.rename(source, dest, (err) => {
+					if (err) {
+						throw err;
+					}
+				});
 			});
-		});
+		} else {
+			await pendingBook.createPendingBookImage({
+				imageUrl: '/',
+			});
+		}
+
 		res.status(202).redirect('/');
 	} catch (err) {
+		if (pendingBook) {
+			pendingBook.destroy();
+		}
 		if (images.length > 0) {
 			images.forEach((image) => {
 				deleteFile(image.path);
@@ -397,7 +408,7 @@ exports.postEditBook = async (req, res, next) => {
 					let dest = path.join(__dirname, '../', imagePath);
 
 					if (!fs.existsSync(dest)) {
-						fs.mkdirSync(dest);
+						fs.mkdirSync(dest, { recursive: true });
 					}
 					dest = dest + '/' + image.filename;
 					await book.createBookImage({
@@ -450,7 +461,6 @@ exports.postDeleteBook = async (req, res, next) => {
 					deleteFile(image.imageUrl);
 				});
 			}
-			await book.removeBookImages();
 			await book.destroy();
 			res.status(200).redirect('/user/books');
 		}
@@ -501,9 +511,10 @@ exports.postDeletePendingBook = async (req, res, next) => {
 					deleteFile(image.imageUrl);
 				});
 			}
-			await pendingBook.removeBookImages();
 			await pendingBook.destroy();
-			res.status(200).redirect('/user/pending-books');
+			res.status(202).json({
+				message: 'Pending book deleted.',
+			});
 		}
 	} catch (err) {
 		if (!err.statusCode) {
@@ -514,12 +525,14 @@ exports.postDeletePendingBook = async (req, res, next) => {
 };
 
 exports.getProfile = async (req, res, next) => {
+	const edit = req.query.edit;
 	try {
 		const user = await User.findByPk(req.user.id);
 		if (!user) {
 			res.status(422).redirect('/');
 		}
 		res.status(200).render('user/profile', {
+			edit: edit,
 			user: user,
 			pageTitle: 'Profile | ' + req.user.username,
 			path: '/user/profile',
@@ -574,7 +587,7 @@ exports.postProfile = async (req, res, next) => {
 		}
 		user.avatar = avatar;
 		await user.save();
-		res.status(200).redirect('/user/profile');
+		res.status(201).redirect('/user/profile');
 	} catch (err) {
 		if (image) {
 			deleteFile(image.path);
@@ -602,8 +615,11 @@ exports.postRandomAvatar = async (req, res, next) => {
 			user.username + rand
 		).toString()}.svg`;
 		await user.save();
+		req.session.user.avatar = user.avatar;
+		await req.session.save();
 		res.status(200).json({
 			message: 'Changed Avatar',
+			avatar: user.avatar,
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -613,7 +629,7 @@ exports.postRandomAvatar = async (req, res, next) => {
 	}
 };
 
-exports.resetAvatar = async (req, res, next) => {
+exports.postResetAvatar = async (req, res, next) => {
 	try {
 		const user = await User.findByPk(req.user.id);
 		if (!user) {
@@ -626,8 +642,11 @@ exports.resetAvatar = async (req, res, next) => {
 		}
 		user.avatar = `https://avatars.dicebear.com/api/big-smile/:${user.username}.svg`;
 		await user.save();
+		req.session.user.avatar = user.avatar;
+		await req.session.save();
 		res.status(200).json({
 			message: 'Reseted Avatar',
+			avatar: user.avatar,
 		});
 	} catch (err) {
 		if (!err.statusCode) {

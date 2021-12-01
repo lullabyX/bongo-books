@@ -31,9 +31,9 @@ router.get('/add-book', isAuth, userController.getAddBook);
 // POST -> /user/add-book
 router.post(
 	'/add-book',
-	[body('price').isFloat().withMessage('Price must be floating point')],
 	isAuth,
 	uploadController.multiple,
+	[body('price').isFloat().withMessage('Price must be floating point')],
 	userController.postAddBook
 );
 
@@ -43,9 +43,9 @@ router.get('/edit-book/:bookId', isAuth, userController.getEditBook);
 // POST -> /user/edit-book
 router.post(
 	'/edit-book',
-	[body('price').isFloat().withMessage('Price must be floating point')],
 	isAuth,
 	uploadController.multiple,
+	[body('price').isFloat().withMessage('Price must be floating point')],
 	userController.postEditBook
 );
 
@@ -77,7 +77,7 @@ router.post(
 router.post('/profile/random-avatar', isAuth, userController.postRandomAvatar);
 
 // POST -> /user/profile/reset-avatar
-router.post('/profile/reset-avatar', isAuth, userController.resetAvatar);
+router.post('/profile/reset-avatar', isAuth, userController.postResetAvatar);
 
 // POST -> /user/profile/add-address
 router.post('/profile/add-address', isAuth, userController.postAddAddress);

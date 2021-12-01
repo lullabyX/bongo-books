@@ -13,7 +13,6 @@ router.get('/books', isAdmin, adminController.getBooks);
 // GET -> /admin/add-book gets the add-book page
 router.get(
 	'/add-book',
-	[body('price').isFloat().withMessage('Price must be floating point')],
 	isAdmin,
 	adminController.getAddBook
 );
@@ -21,9 +20,9 @@ router.get(
 // POST -> /admin/add-book posts a book under the user
 router.post(
 	'/add-book',
-	// [body('price').isFloat().withMessage('Price must be floating point')],
 	isAdmin,
 	uploadController.multiple,
+	[body('price').isFloat().withMessage('Price must be floating point')],
 	adminController.postAddBook
 );
 
@@ -33,9 +32,9 @@ router.get('/edit-book/:bookId', isAdmin, adminController.getEditBook);
 // POST -> /admin/edit-book posts the edited book NOTE: bookId as "id" should be passed in body
 router.post(
 	'/edit-book',
-	// [body('price').isFloat().withMessage('Price must be floating point')],
 	isAdmin,
 	uploadController.multiple,
+	[body('price').isFloat().withMessage('Price must be floating point')],
 	adminController.postEditBook
 );
 
@@ -119,7 +118,7 @@ router.get(
 );
 
 // POST -> /admin/pending-book
-router.post('/pending-book', isAdmin, adminController.postVerifyPendingBooks);
+router.post('/pending-book', isAdmin, adminController.postVerifyPendingBook);
 
 // POST -> /admin/delete-pending-books
 router.post(

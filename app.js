@@ -1,5 +1,6 @@
 require('dotenv').config();
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
@@ -38,10 +39,44 @@ const PendingBookImage = require('./models/pending-book-image');
 const Rating = require('./models/rating');
 const RatingItem = require('./models/rating-item');
 const Review = require('./models/review');
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
+const { format } = require('path');
 
 const app = express();
 
-// const csrfProtection = csurf(); //uncomment for csrf protection, needs csrf token in every view
+const csrfProtection = csurf(); //uncomment for csrf protection, needs csrf token in every view
+
+const accessLogStream = fs.createWriteStream(
+	path.join(__dirname, 'access.log'),
+	{ flags: 'a' }
+);
+
+app.use(
+	helmet.contentSecurityPolicy({
+		useDefaults: true,
+		directives: {
+			'img-src': ["'self'", 'https://avatars.dicebear.com'],
+			defaultSrc: [
+				"'self'",
+				"'unsafe-eval'",
+				'https://code.jquery.com/',
+				"'unsafe-inline'",
+				'https://fonts.googleapis.com/',
+			],
+			scriptSrc: [
+				"'self'",
+				"'unsafe-eval'",
+				'https://code.jquery.com/',
+				"'unsafe-inline'",
+			],
+			'style-src': null,
+		},
+	})
+);
+app.use(compression());
+app.use(morgan('combined', { stream: accessLogStream }));
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -58,7 +93,7 @@ app.use(
 	})
 );
 
-// app.use(csrfProtection); //uncomment for csrf
+app.use(csrfProtection); //uncomment for csrf
 app.use(flash());
 
 app.set('view engine', 'ejs');
@@ -129,10 +164,13 @@ Genre.belongsToMany(Book, { constraints: true, through: GenreItem });
 Tag.belongsTo(Book);
 Book.hasMany(Tag);
 
-BookImage.belongsTo(Book);
+BookImage.belongsTo(Book, { constraints: true, onDelete: 'CASCADE' });
 Book.hasMany(BookImage);
 
-PendingBookImage.belongsTo(PendingBook);
+PendingBookImage.belongsTo(PendingBook, {
+	constraints: true,
+	onDelete: 'CASCADE',
+});
 PendingBook.hasMany(PendingBookImage);
 
 Book.hasOne(Rating);

@@ -7,6 +7,7 @@ const Rating = require('../models/rating');
 const Review = require('../models/review');
 const BookImage = require('../models/book-image');
 const User = require('../models/user');
+const { CreateUpdateContactModel } = require('sib-api-v3-sdk');
 
 exports.getIndex = async (req, res, next) => {
 	const page = +req.query.page || 1;
@@ -59,7 +60,6 @@ exports.getBooks = async (req, res, next) => {
 				{ model: BookImage },
 			],
 		});
-		console.log(books);
 		res.render('shop/books', {
 			books: books,
 			pageTitle: 'Shop Page',
@@ -107,6 +107,7 @@ exports.getBook = async (req, res, next) => {
 							attributes: ['username', 'avatar'],
 						},
 					],
+					order: ['createdAt', 'DESC'],
 				},
 				{ model: BookImage },
 			],
