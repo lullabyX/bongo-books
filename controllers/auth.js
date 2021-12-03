@@ -70,7 +70,7 @@ exports.getSignup = async (req, res, next) => {
 	try {
 		res.status(200).render('auth/signup', {
 			pageTitle: 'Sign Up',
-			path: '/signup',
+			path: '/auth/signup',
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -162,7 +162,7 @@ exports.getVerification = async (req, res, next) => {
 		if (!pendingUser) {
 			req.flash('error', 'Invalid request or reset link has expired');
 			await req.session.save();
-			return res.status(401).redirect('/signup');
+			return res.status(401).redirect('/auth/signup');
 		}
 		const user = await User.create({
 			username: pendingUser.username,
@@ -214,7 +214,7 @@ exports.getPasswordReset = async (req, res, next) => {
 	try {
 		res.status(200).render('auth/reset', {
 			pageTitle: 'Request Password Reset',
-			path: '/reset',
+			path: '/auth/reset',
 		});
 	} catch (err) {
 		if (!err.statusCode) {
@@ -233,7 +233,7 @@ exports.postPasswordReset = async (req, res, next) => {
 		if (!user) {
 			req.flash('error', 'Account not found associated with the E-mail');
 			await req.session.save();
-			return res.status(401).redirect('/reset');
+			return res.status(401).redirect('/auth/reset');
 		}
 		const buffer = await crypto.randomBytes(32);
 		const token = buffer.toString('hex');
@@ -241,7 +241,7 @@ exports.postPasswordReset = async (req, res, next) => {
 		user.resetTokenTimeout = Date.now() + 3600000; // 1 hour
 		await user.save();
 		await req.session.save();
-		res.status(202).redirect('/reset');
+		res.status(202).redirect('/auth/reset');
 		passwordResetEmail = {
 			to: [
 				{
@@ -310,7 +310,7 @@ exports.postResetNow = async (req, res, next) => {
 		if (!user) {
 			req.flash('error', 'Invalid request or reset link has expired');
 			await req.session.save();
-			return req.status(401).redirect('/reset');
+			return res.status(401).redirect('/auth/reset');
 		}
 		const hashedPassword = await bcrypt.hash(newPassword, 12);
 		user.password = hashedPassword;

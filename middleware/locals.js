@@ -8,6 +8,7 @@ module.exports = async (req, res, next) => {
 			res.locals.avatar = req.session.user.avatar;
 		}
 		res.locals.csrfToken = req.csrfToken(); //uncomment for csrf
+		// console.log(req.flash('error'));
 		res.locals.errorMessage = req.flash('error');
 		res.locals.successMessage = req.flash('success');
 		next();

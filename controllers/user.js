@@ -275,7 +275,7 @@ exports.postAddBook = async (req, res, next) => {
 		}
 		req.flash('error', errors.array());
 		await req.session.save();
-		return req.status(422).redirect('/user/add-book');
+		return res.status(422).redirect('/user/add-book');
 	}
 
 	try {

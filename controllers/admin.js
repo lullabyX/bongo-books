@@ -251,9 +251,9 @@ exports.getPendingBook = async (req, res, next) => {
 			await req.session.save();
 			return res.status(404).redirect('/admin/pending-books');
 		}
-		res.status(200).render('admin/pending-book', {
+		res.status(200).render('admin/edit-book', {
 			book: pendingBook,
-			pageTitle: 'Pending ' + pendingBook.title,
+			pageTitle: 'Verifying ' + pendingBook.title,
 			path: '/admin/pending-book',
 		});
 	} catch (err) {
@@ -346,7 +346,7 @@ exports.postVerifyPendingBook = async (req, res, next) => {
 		if (!publication) {
 			req.flash(
 				'error',
-				`publication ${publication} is not found in our Database.`
+				`publication ${publicationName} is not found in our Database.`
 			);
 			await req.session.save();
 			return res
@@ -460,7 +460,6 @@ exports.getEditBook = async (req, res, next) => {
 				include: [Tag, Author, Genre, Publication],
 			});
 			if (book) {
-				console.log(book);
 				res.status(200).render('admin/edit-book', {
 					edit: editing,
 					book: book,
@@ -479,12 +478,12 @@ exports.getEditBook = async (req, res, next) => {
 			next(err);
 		}
 	} else {
-		req.status(404).redirect('/books');
+		res.status(404).redirect('/books');
 	}
 };
 
 exports.postEditBook = async (req, res, next) => {
-	const bookId = req.body.id;
+	const bookId = req.body.bookId;
 	const updatedTitle = req.body.title;
 	const updatedImages = req.files;
 	const updatedPrice = req.body.price;
@@ -506,7 +505,7 @@ exports.postEditBook = async (req, res, next) => {
 		}
 		req.flash('error', errors.array());
 		await req.session.save();
-		req.status(422).redirect(`/admin/edit-book/${bookId}`);
+		res.status(422).redirect(`/admin/edit-book/${bookId}?edit=true`);
 	}
 
 	const authorsArray = await updatedAuthorsString.split(',').map((author) => {
@@ -529,11 +528,6 @@ exports.postEditBook = async (req, res, next) => {
 		});
 
 		if (book) {
-			/////////delete existing publication, tags, genre////////////
-			await GenreItem.destroy({ where: { bookId: book.id } });
-			await AuthorItem.destroy({ where: { bookId: book.id } });
-			await Tag.destroy({ where: { bookId: book.id } });
-			////////////////////////////////////////////////////////////
 			let authors = [];
 			let genres = [];
 			// add authors
@@ -554,7 +548,7 @@ exports.postEditBook = async (req, res, next) => {
 					deleteMultipleFiles(updatedImages);
 					return res
 						.status(422)
-						.redirect(`/admin/edit-book/${bookId}`);
+						.redirect(`/admin/edit-book/${bookId}?edit=true`);
 				}
 				authors.push(author);
 			}
@@ -576,7 +570,7 @@ exports.postEditBook = async (req, res, next) => {
 					deleteMultipleFiles(updatedImages);
 					return res
 						.status(422)
-						.redirect(`/admin/edit-book/${bookId}`);
+						.redirect(`/admin/edit-book/${bookId}?edit=true`);
 				}
 				genres.push(genre);
 			}
@@ -587,11 +581,13 @@ exports.postEditBook = async (req, res, next) => {
 			if (!publication) {
 				req.flash(
 					'error',
-					`Publication ${publication.name} is not found in our Database.`
+					`Publication ${updatedPublicationName} is not found in our Database.`
 				);
 				await req.session.save();
 				deleteMultipleFiles(updatedImages);
-				return res.status(422).redirect(`/admin/edit-book/${bookId}`);
+				return res
+					.status(422)
+					.redirect(`/admin/edit-book/${bookId}?edit=true`);
 			}
 			book.title = updatedTitle;
 			book.price = updatedPrice;
@@ -605,6 +601,11 @@ exports.postEditBook = async (req, res, next) => {
 			// authors.forEach(async (author) => {
 			// 	await author.addBook(book);
 			// });
+			/////////delete existing publication, tags, genre////////////
+			await GenreItem.destroy({ where: { bookId: book.id } });
+			await AuthorItem.destroy({ where: { bookId: book.id } });
+			await Tag.destroy({ where: { bookId: book.id } });
+			////////////////////////////////////////////////////////////
 			await book.addAuthors(authors);
 			// genres.forEach(async (genre) => {
 			// 	await genre.addBook(book);
