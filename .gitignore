@@ -184,3 +184,6 @@ config.js
 *.pdf
 
 # End of https://www.toptal.com/developers/gitignore/api/images
+
+# sync these file
+!logo.png
