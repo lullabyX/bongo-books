@@ -189,7 +189,7 @@ sequelize
 	// .sync({ force: true })
 	.sync()
 	.then((result) => {
-		app.listen(process.env.HOST_PORT);
+		app.listen(process.env.PORT);
 	})
 	.catch((err) => {
 		console.log(err);
