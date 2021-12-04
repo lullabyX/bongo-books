@@ -1,0 +1,53 @@
+<%
+        let firstName, lastName, primaryPhone;
+        // let title = price = authors = publication = ISBN = publishDate = genres = tags = language = description = "";
+        if (edit) {
+            firstName = user.firstName;
+            lastName = user.lastName;
+            primaryPhone = user.primaryPhone;
+        }
+%>
+
+<form class="ui form" action="/user/profile?_csrf=<%= csrfToken %>"  enctype='multipart/form-data' method="post">
+    <div class="field">
+        <div class="ui labeled input">
+            <div class="ui label">
+                First Name
+            </div>
+            <input type="text" name="firstName" placeholder="firstName" value="<%= firstName %>" >
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="ui labeled input">
+            <div class="ui label">
+                Last Name
+            </div>
+            <input type="text" name="lastName" placeholder="lastName" value="<%= lastName %>" >
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="ui labeled input">
+            <div class="ui label">
+                Avatar
+            </div>
+            <input type="file" name="image" multiple accept="image/*">
+
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="ui labeled input">
+            <div class="ui label">
+                Phone
+            </div>
+
+            <input type="text" name="primaryPhone" placeholder="primaryPhone" value="<%= primaryPhone %>">
+        </div>
+    </div>
+
+    <a href="/user/profile"><button class="ui button">Cancel</button></a>
+    <button class="ui button" type="submit">Edit</button>
+</form>
+

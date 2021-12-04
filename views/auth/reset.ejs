@@ -12,6 +12,10 @@
     <style type="text/css">
 
         body>
+        .ui.stacked.segments::after {
+            position: relative;
+        }
+
         .ui.stacked.segment::after {
             position: relative;
         }
@@ -19,6 +23,8 @@
         .column {
             max-width: 450px;
         }
+
+
 
     </style>
 
@@ -35,7 +41,7 @@
                     Request for a password reset link
                 </div>
             </h2>
-            <form class="ui large form">
+            <form class="ui large form" action="/auth/reset" method="post">
                 <div class="ui stacked segment" style="position: relative;">
                     <div class="field">
                         <div class="ui left icon input">

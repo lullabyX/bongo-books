@@ -1,13 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title><%= pageTitle %></title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="css/style.css" rel="stylesheet">
-    </head>
-    <body>
-    <h1>Cart will be shown herer!</h1>
+  <head>
+    <title><%= pageTitle %></title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <%- include('../includes/styles.ejs') %>
+  </head>
+
+  <body>
+    <%- include('../includes/navbar.ejs') %>
+    <h1 align="center">Following items are in your cart!</h1>
+    <div class="ui placeholder segment" style="width: 750px; margin: auto">
+      <div
+        class="ui internally celled grid"
+        style="border: 1px solid; margin: auto"
+      >
+        <% let total=0; %> <% for( let book of books ) { %>
+        <div class="row">
+          <div class="three wide column">
+            <img src="<%= book.bookImages[0].imageUrl %> " />
+            <% console.dir(book.cartItem) %>
+          </div>
+          <div class="nine wide column">
+            <div class="ui header"><%= book.title %></div>
+          </div>
+          <div class="four wide column">
+            <p>Quantity: <%= book.cartItem.quantity %></p>
+            <p>Per unit price: <%= book.price %></p>
+            <% let subtotal = book.price * book.cartItem.quantity; total +=
+            subtotal; %>
+            <p>Subtotal: <%= subtotal %></p>
+          </div>
+        </div>
+        <% } %>
+      </div>
+      <h2
+        style="
+          border: 1px solid;
+          height: 50px;
+          line-height: 50px;
+          text-align: center;
+        "
+      >
+        Total price: <%= total %>
+      </h2>
+    </div>
     <a href="/user/checkout/shipping">Checkout</a>
-    </body>
+  </body>
 </html>

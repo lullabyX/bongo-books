@@ -1,5 +1,5 @@
 <div class="ui sticky">
-    <div class="ui secondary menu" id="menu" style="background-color: azure;">
+    <div class="ui secondary menu" id="menu" style="background-color: azure;height: 45px;">
         <div class="item">
             <h3>
                 <a href="/"  style="color:black;">BongoBooks</a>
@@ -50,31 +50,40 @@
                             <i class="search link icon"></i>
                         </div>
                     </div>
-                    <a class="ui item" href="/user/cart">
-                        <i class="shopping cart icon"></i>
+                    <a class="item" href="/user/cart">
+                           <i class="shopping cart icon"></i>
+
+
                     </a>
 
                     <% if (isAuthenticated) { %>
 
                         <div class="ui inline dropdown item">
                             <!-- <i class="user circle icon"></i> -->
-                            <div class="text">
+                            <!-- <div class="none" style="height: 10px;"> -->
                                 <img class="ui avatar image" src="<%= avatar %> ">
-                                <%= username %>
-                            </div>
+                                <b><%= username %></b>
+                            <!-- </div> -->
 
 
                             <i class="dropdown icon"></i>
                             <div class="menu">
                                 <a class="item" href="/user/profile">Profile</a>
-                                <a class="item" onclick="sendPostRequest('/auth/logout', null)">Logout</a>
+                                <a class="item" href="/user/orders">My orders</a>
+                                <form action="/auth/logout" method="post">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" >
+                                    <button class="ui item" type="submit">Logout</button>
+                                </form>
+                                <!-- </div> -->
+
+                                <!-- <button class="item" onclick="signout('/auth/logout', null)">Logout</button> -->
 
 
                             </div>
                         </div>
 
                     <% } else { %>
-                            <a class="ui item" href="/auth/login">
+                            <a class="item" href="/auth/login">
                                 Login
                             </a>
                     <% } %>
@@ -84,12 +93,19 @@
     </div>
 </div>
 
+
+</div>
+
 <% if (successMessage[0]) { %>
     <div class="ui middle aligned center aligned grid" style="margin-top:5px;">
         <div class="column" style="width: 750px;">
             <div class="ui secondary inverted green segment" style="width: 100%;">
 
+                <% if (typeof successMessage[0] === "object") { %>
+                    <%= successMessage[0].msg %>
+                <% } else { %>
                     <%= successMessage[0] %>
+                <% } %>
 
             </div>
         </div>
@@ -98,9 +114,15 @@
         <div class="ui middle aligned center aligned grid" style="margin-top:5px;">
             <div class="column" style="width: 750px;">
                 <div class="ui secondary inverted red segment" style="width: 100%;">
-
+                    <% if (typeof errorMessage[0] === "object") { %>
+                        <%= errorMessage[0].msg %>
+                    <% } else { %>
                         <%= errorMessage[0] %>
-                   
+                    <% } %>
+
+
+
+
                 </div>
             </div>
         </div>
@@ -116,34 +138,25 @@
             .sticky();
     });
 
-    function sendPostRequest(endpoint, data) {
-        // var xhr = new XMLHttpRequest();
-        // xhr.open("POST", endpoint, true);
-        // xhr.setRequestHeader('csrf-token', '<#%= csrfToken %>');
-        // xhr.send(body);
-
-        // xhr.onload = function () {
-        //     location.reload();
-        //     return false;
-        // };
-
-        console.log(data);
+    function signout(endpoint, data) {
+        //console.log(data);
         fetch(endpoint, {
             method: 'POST',
             headers: {
                 'csrf-token': '<%= csrfToken %>',
-                'Content-Type': 'application/json',
-                // 'Content-Type': 'application/x-www-form-urlencoded',
+                //'Content-Security-Policy': "default-src 'http:';",
+                //'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: JSON.stringify({
-                bookId: data,
-            })
+            body: data,
         })
         .then(result => {
-            return result.json();
+            window.location.replace('/books');
+            return result;
         })
         .then(data => {
             console.log(data);
+
         })
         .catch(err => {
             console.log(err);
@@ -167,7 +180,9 @@
             body: data,
         })
         .then(result => {
-            return result;
+            console.log(result)
+            return JSON.stringify(result);
+
         })
         .then(data => {
             console.log(data);
@@ -175,8 +190,13 @@
             var card_id = 'card_'+ bookId;
             console.log(card_id);
             var obj = document.getElementById(card_id);
-            console.log(obj)
-            obj.remove();
+            if (obj != null){
+                obj.remove();
+            }
+
+            if (window.location.href.indexOf("book-detail") > -1) {
+                window.location.replace('/books');
+            }
         })
         .catch(err => {
             console.log(err);

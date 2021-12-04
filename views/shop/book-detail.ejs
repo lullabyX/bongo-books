@@ -24,10 +24,10 @@
                 <img style="height: 100%; width: 100%;" src="<%= book.bookImages[0].imageUrl %> ">
               </div>
             </div>
-            <div class="eight wide column" align=left>
+            <div class="eleven wide column" align=left>
 
               <div class="ui card" style="box-shadow: none;background-color: transparent;height: 100%;width: 100%;">
-                <div class="content">
+                <div class="content" align="justify">
                   <div class="header">
                     <h1 style="margin: 0px;">
                       <%= book.title %>
@@ -54,12 +54,13 @@
                 </div>
 
                 <div class="extra">
-                  <!-- <div class="ui two buttons"> -->
-                  <button class="ui button left floated"><a href="/user/cart">Add to cart</a></button>
-                  <button class="ui button right floated"><a href="#review">Add review</a></button>
-                  <!-- <button class="ui button left floated">Edit book</button> -->
-                  <!-- <button class="ui button">Delete book</button> -->
-                  <!-- </div> -->
+                  <form action="/user/cart" method="post">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" >
+                    <input type="hidden" name="bookId" value="<%= book.id %>" >
+                    <button class="ui button left floated" type="submit">Add to cart</button>
+                    <a href="#review_field"><button class="ui button right floated" type="button">Add review</button></a>
+                  </form>
+
                 </div>
               </div>
 
@@ -95,7 +96,7 @@
                 <div class="ui bulleted list">
                   <% for( author of book.authors ) { %>
                     <div class="item">
-                      <a>
+                      <a href="/books/author?id=<%= author.id %>">
                         <%= author.name %>
                       </a>
                     </div>
@@ -106,7 +107,9 @@
             <tr>
               <td>Publication</td>
               <td>
+                <a href="/books/publication?id=<%= book.publication.id %>">
                 <%= book.publication.name %>
+                </a>
               </td>
             </tr>
 
@@ -154,29 +157,34 @@
 
         </table>
 
-        <button class=" ui button">
-          <a href="/admin/edit-book/<%= book.id %>?edit=true">Edit book</a>
-        </button>
-        <button class="ui button">
-          <a onclick="postDeleteBook('/admin/delete-book', '<%= book.id %>', this)">
-            Delete book
+        <% if (isAdmin) { %>
+          <a href="/admin/edit-book/<%= book.id %>?edit=true">
+          <button class=" ui button">
+            Edit book
+          </button>
           </a>
-        </button>
+          <button class="ui button" onclick="postDeleteBook('/admin/delete-book', '<%= book.id %>', this)">
+
+              Delete book
+
+          </button>
+        <% } %>
+
+
 
         <h4 class=" ui horizontal divider header">
           <i class="list icon"></i>
           Reviews
         </h4>
-        <form class="ui form" id="review" action="/user/review/add" method="post">
-          <div class="field">
-          <textarea type="text" rows="6" name="review" placeholder="Write a review..." style="width: 100%;"></textarea>
+        <form class="ui form">
+          <div class="field" id="review_field">
+          <textarea type="text" rows="6" id="review_text" name="review" placeholder="Write a review..." style="width: 100%;"></textarea>
           </div>
-          <input type="hidden" name="bookId" value="<%= book.id %>" >
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>" >
-          <button class="ui button" type="submit">Add review</button>
+
+          <button class="ui button" type="button" onclick="addReview()">Add review</button>
         </form>
 
-        <div class="ui feed">
+        <div class="ui feed" id='review_feed'>
           <% for( let review of book.reviews ) { %>
             <div class="event">
               <div class="label">
@@ -207,9 +215,41 @@
     </div>
 
 
+<script>
+  function addReview() {
+
+    var encodedKey_bookId = encodeURIComponent('bookId');
+    var encodedValue_bookId = encodeURIComponent("<%= book.id %>");
+    var encodedKey_review = encodeURIComponent('review');
+    var review_text = document.getElementById('review_text').value;
+    var encodedValue_review = encodeURIComponent(review_text);
+    var data = encodedKey_bookId +'='+ encodedValue_bookId + '&' + encodedKey_review + '=' + encodedValue_review;
+    fetch('/user/review/add', {
+        method: 'POST',
+        headers: {
+            'csrf-token': '<%= csrfToken %>',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: data,
+    })
+    .then(result => {
+        console.log(result)
+        $("#review_feed").load(" #review_feed > *");
+        $("#review_field").load(" #review_field > *");
+        return JSON.stringify(result);
+
+    })
+    .then(data => {
+        console.log(data);
 
 
+    })
+    .catch(err => {
+        console.log(err);
+    })
 
+  }
+</script>
 
 
 
