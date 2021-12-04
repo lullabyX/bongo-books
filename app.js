@@ -103,7 +103,7 @@ app.use(
 	})
 );
 
-// app.use(csrfProtection); //uncomment for csrf
+app.use(csrfProtection); //uncomment for csrf
 app.use(flash());
 
 app.set('view engine', 'ejs');
