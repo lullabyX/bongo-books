@@ -1,4 +1,5 @@
-const { Op, Model } = require('sequelize');
+const { Op } = require('sequelize');
+
 const Book = require('../models/book');
 const Genre = require('../models/genre');
 const Tag = require('../models/tag');
@@ -40,68 +41,68 @@ exports.getGeneralSearch = async (req, res, next) => {
 				[Op.or]: [
 					{
 						title: {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						description: {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						publishDate: {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						language: {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						ISBN: {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$genres.name$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$genres.description$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$authors.name$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$authors.description$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$tags.name$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$publication.name$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$publication.description$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 				],
 			},
 		});
-		res.status(200).render('/shop/search', {
+		res.status(200).render('shop/search', {
 			books: books,
 			pageTitle: 'Search',
 			path: '/search',
@@ -115,7 +116,7 @@ exports.getGeneralSearch = async (req, res, next) => {
 };
 
 exports.getFilteredSearch = async (req, res, next) => {
-	let terms = req.query.term;
+	let terms = req.query.term || '';
 
 	const author = req.query.author || '';
 	let pricelow = req.query.pricelow || 0.0;
@@ -151,14 +152,20 @@ exports.getFilteredSearch = async (req, res, next) => {
 			pricehigh = 9999999.0;
 		}
 		//ordertype sanitization
-		if (ordertype !== 'ASC' || ordertype !== 'DESC') {
+		if (ordertype != 'asc' && ordertype != 'desc') {
 			ordertype = 'ASC';
 		}
 		orderby =
 			orderby.toString() == 'publishdate'
 				? 'publishDate'
 				: orderby.toString();
-		const by = ['title', 'price', 'publishDate', 'createdAt'];
+		orderby =
+			orderby.toString() == 'createdat'
+				? 'createdAt'
+				: orderby.toString();
+		orderby =
+			orderby.toString() == 'sold' ? 'sellCount' : orderby.toString();
+		const by = ['title', 'price', 'publishDate', 'createdAt', 'sellCount'];
 		if (
 			!by.find((val) => {
 				return val == orderby;
@@ -201,69 +208,69 @@ exports.getFilteredSearch = async (req, res, next) => {
 				[Op.or]: [
 					{
 						title: {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						description: {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						publishDate: {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						language: {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						ISBN: {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$genres.name$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$genres.description$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$authors.name$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$authors.description$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$tags.name$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$publication.name$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 					{
 						'$publication.description$': {
-							[Op.like]: { [Op.any]: terms },
+							[Op.iLike]: { [Op.any]: terms },
 						},
 					},
 				],
 				[Op.and]: [
 					{
 						publishDate: {
-							[Op.like]: '%' + publishDate + '%',
+							[Op.iLike]: '%' + publishDate + '%',
 						},
 					},
 					{
@@ -278,28 +285,28 @@ exports.getFilteredSearch = async (req, res, next) => {
 					},
 					{
 						'$genres.name$': {
-							[Op.like]: '%' + genre + '%',
+							[Op.iLike]: '%' + genre + '%',
 						},
 					},
 					{
 						'$authors.name$': {
-							[Op.like]: '%' + author + '%',
+							[Op.iLike]: '%' + author + '%',
 						},
 					},
 					{
 						'$tags.name$': {
-							[Op.like]: '%' + tag + '%',
+							[Op.iLike]: '%' + tag + '%',
 						},
 					},
 					{
 						'$publication.name$': {
-							[Op.like]: '%' + publication + '%',
+							[Op.iLike]: '%' + publication + '%',
 						},
 					},
 				],
 			},
 		});
-		res.status(200).render('/shop/search', {
+		res.status(200).render('shop/search', {
 			books: books,
 			pageTitle: 'Search',
 			path: '/search',

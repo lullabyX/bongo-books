@@ -7,18 +7,42 @@ const Rating = require('../models/rating');
 const Review = require('../models/review');
 const BookImage = require('../models/book-image');
 const User = require('../models/user');
-const { CreateUpdateContactModel } = require('sib-api-v3-sdk');
 
 exports.getIndex = async (req, res, next) => {
 	const page = +req.query.page || 1;
+	let orderby = req.query.orderby || 'title';
+	let ordertype = req.query.ordertype || 'ASC';
 	let totalBooks;
 	let totalPages;
 	try {
+		//ordertype sanitization
+		if (ordertype != 'asc' && ordertype != 'desc') {
+			ordertype = 'ASC';
+		}
+		orderby =
+			orderby.toString() == 'publishdate'
+				? 'publishDate'
+				: orderby.toString();
+		orderby =
+			orderby.toString() == 'createdat'
+				? 'createdAt'
+				: orderby.toString();
+		orderby =
+			orderby.toString() == 'sold' ? 'sellCount' : orderby.toString();
+		const by = ['title', 'price', 'publishDate', 'createdAt', 'sellCount'];
+		if (
+			!by.find((val) => {
+				return val == orderby;
+			})
+		) {
+			orderby = 'title';
+		}
 		totalBooks = +(await Book.count());
 		totalPages = Math.ceil(totalBooks / process.env.BOOKS_PER_PAGE);
 		const books = await Book.findAll({
 			offset: (page - 1) * process.env.BOOKS_PER_PAGE,
 			limit: process.env.BOOKS_PER_PAGE,
+			order: [[orderby, ordertype]],
 			include: [
 				{ model: Rating },
 				{ model: Author },
@@ -46,14 +70,39 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getBooks = async (req, res, next) => {
 	const page = +req.query.page || 1;
+	let orderby = req.query.orderby || 'title';
+	let ordertype = req.query.ordertype || 'ASC';
 	let totalBooks;
 	let totalPages;
 	try {
+		//ordertype sanitization
+		if (ordertype != 'asc' && ordertype != 'desc') {
+			ordertype = 'ASC';
+		}
+		orderby =
+			orderby.toString() == 'publishdate'
+				? 'publishDate'
+				: orderby.toString();
+		orderby =
+			orderby.toString() == 'createdat'
+				? 'createdAt'
+				: orderby.toString();
+		orderby =
+			orderby.toString() == 'sold' ? 'sellCount' : orderby.toString();
+		const by = ['title', 'price', 'publishDate', 'createdAt', 'sellCount'];
+		if (
+			!by.find((val) => {
+				return val == orderby;
+			})
+		) {
+			orderby = 'title';
+		}
 		totalBooks = +(await Book.count());
 		totalPages = Math.ceil(totalBooks / process.env.BOOKS_PER_PAGE);
 		const books = await Book.findAll({
 			offset: (page - 1) * process.env.BOOKS_PER_PAGE,
 			limit: process.env.BOOKS_PER_PAGE,
+			order: [[orderby, ordertype]],
 			include: [
 				{ model: Rating },
 				{ model: Author },

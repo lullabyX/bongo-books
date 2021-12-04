@@ -1,105 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title><%= pageTitle %></title>
-    <meta charset="UTF-8" />
-    <%- include('../includes/styles.ejs') %>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-  </head>
+	<head>
+		<title><%= pageTitle %></title>
+		<meta charset="UTF-8" />
+		<%- include('../includes/styles.ejs') %>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+	</head>
 
-  <body>
-    <%- include('../includes/navbar.ejs') %>
+	<body>
+		<%- include('../includes/navbar.ejs') %>
 
-    <main>
-      <% if (books.length> 0) { %>
+		<main>
+			<% if (books.length> 0) { %>
 
-      <div
-        class="ui middle aligned center aligned grid"
-        style="margin-top: 20px; width:1100px"
-      >
-        <div class="column" style="max-width: 1100px; margin: auto">
-          <div class="ui four cards" style="margin: auto">
-            <% for (let book of books) { %>
+			<div
+				class="ui middle aligned center aligned grid"
+				style="margin-top: 20px; width: 1100px"
+			>
+				<div class="column" style="max-width: 1100px; margin: auto">
+					<div class="ui four cards" style="margin: auto">
+						<% for (let book of books) { %>
 
-            <a style="margin:auto" href="/book-detail/<%= book.id %> ">
-              <div
-                class="card"
-                style="
-                  width: 250px;
-                  height: 450px;
-                  margin: auto;
-                  margin-bottom: 20px;
-                "
-                id="card_<%= book.id %>"
-              >
-                <div class="image" style="margin: auto; margin-top: 8px">
-                  <img
-                    style="max-height: 235px; width: 100%"
-                    src="<%= book.bookImages[0].imageUrl %> "
-                  />
-                </div>
+						<a
+							style="margin: auto"
+							href="/book-detail/<%= book.id %> "
+						>
+							<div
+								class="card"
+								style="
+									width: 250px;
+									height: 450px;
+									margin: auto;
+									margin-bottom: 20px;
+								"
+								id="card_<%= book.id %>"
+							>
+								<div
+									class="image"
+									style="margin: auto; margin-top: 8px"
+								>
+									<img
+										style="max-height: 235px; width: 100%"
+										src="<%= book.bookImages[0].imageUrl %> "
+									/>
+								</div>
 
-                <div
-                  class="content"
-                  style="align-items: center; text-align: center"
-                >
-                  <div class="header">
-                    <a href="/book-detail/<%= book.id %> ">
-                      <%= book.title %>
-                    </a>
-                  </div>
-                  <div class="meta"><%= book.authors[0].name %><br /></div>
-                  <div class="description">
-                    <b>Price: <%= book.price %> USD </b>
-                  </div>
-                </div>
+								<div
+									class="content"
+									style="
+										align-items: center;
+										text-align: center;
+									"
+								>
+									<div class="header">
+										<a href="/book-detail/<%= book.id %> ">
+											<%= book.title %>
+										</a>
+									</div>
+									<div class="meta">
+										<%= book.authors[0].name %><br />
+									</div>
+									<div class="description">
+										<b>Price: <%= book.price %> USD </b>
+									</div>
+								</div>
 
-                <div class="extra">
-                  <!-- <div class="ui bottom attached button"> -->
-                  <!-- <i class="shopping cart icon"></i> -->
-                  <!-- <a href=""> Add to cart </a> -->
-                  <form action="/user/cart" method="post">
-                    <input
-                      type="hidden"
-                      name="_csrf"
-                      value="<%= csrfToken %>"
-                    />
-                    <input type="hidden" name="bookId" value="<%= book.id %>" />
-                    <button class="ui button" type="submit">Add to cart</button>
-                  </form>
-                  <!-- </div> -->
-                </div>
+								<div class="extra">
+									<!-- <div class="ui bottom attached button"> -->
+									<!-- <i class="shopping cart icon"></i> -->
+									<!-- <a href=""> Add to cart </a> -->
+									<form action="/user/cart" method="post">
+										<input
+											type="hidden"
+											name="_csrf"
+											value="<%= csrfToken %>"
+										/>
+										<input
+											type="hidden"
+											name="bookId"
+											value="<%= book.id %>"
+										/>
+										<button class="ui button" type="submit">
+											Add to cart
+										</button>
+									</form>
+									<!-- </div> -->
+								</div>
 
-                <% if (isAdmin) { %>
-                <div class="extra">
-                  <div class="ui two buttons">
-                    <div class="ui basic green button">
-                      <a href="/admin/edit-book/<%= book.id %>?edit=true">
-                        Edit
-                      </a>
-                    </div>
-                    <div class="ui basic red button">
-                      <a
-                        onclick="postDeleteBook('/admin/delete-book', '<%= book.id %>', this)"
-                      >
-                        Delete
-                      </a>
-                    </div>
-                  </div>
-                </div>
+								<% if (isAdmin) { %>
+								<div class="extra">
+									<div class="ui two buttons">
+										<div class="ui basic green button">
+											<a
+												href="/admin/edit-book/<%= book.id %>?edit=true"
+											>
+												Edit
+											</a>
+										</div>
+										<div class="ui basic red button">
+											<a
+												onclick="postDeleteBook('/admin/delete-book', '<%= book.id %>', this)"
+											>
+												Delete
+											</a>
+										</div>
+									</div>
+								</div>
 
-                <% } %>
-              </div>
-            </a>
+								<% } %>
+							</div>
+						</a>
 
-            <% } %>
-          </div>
-        </div>
-      </div>
+						<% } %>
+					</div>
+				</div>
+			</div>
 
-      <% } else { %>
-      <h1>No Products Found!</h1>
-      <% } %>
-    </main>
-  </body>
+			<% } else { %>
+			<h1>No Books Found!</h1>
+			<% } %>
+		</main>
+	</body>
 </html>

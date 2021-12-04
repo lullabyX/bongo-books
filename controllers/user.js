@@ -31,6 +31,7 @@ exports.getBooks = async (req, res, next) => {
 			offset: (page - 1) * process.env.BOOKS_PER_PAGE,
 			limit: process.env.BOOKS_PER_PAGE,
 			where: { userId: req.user.id },
+			include: [BookImage, Author, Publication],
 		});
 		totalBooks = books.count;
 		totalPages = Math.ceil(totalBooks / process.env.BOOKS_PER_PAGE);
