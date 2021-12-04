@@ -6,8 +6,9 @@ module.exports = async (req, res, next) => {
 			res.locals.isAdmin = req.session.user.userType === 'admin';
 			res.locals.username = req.session.user.username;
 			res.locals.avatar = req.session.user.avatar;
+			res.locals.cartTotalItems = req.user.cartTotalItems;
 		}
-		res.locals.csrfToken = req.csrfToken(); //uncomment for csrf
+		res.locals.csrfToken = 'asdfasdf'; //req.csrfToken(); //uncomment for csrf
 		// console.log(req.flash('error'));
 		res.locals.errorMessage = req.flash('error');
 		res.locals.successMessage = req.flash('success');

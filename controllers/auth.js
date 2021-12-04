@@ -136,7 +136,6 @@ exports.postSignup = async (req, res, next) => {
 				BONGOBOOKSURL: process.env.BONGOBOOKSURL,
 			},
 		};
-		console.log(process.env.SIB_EMAIL_VERIFICATION_TEMPLATE_ID);
 		const data = await apiInstance.sendTransacEmail(emailVerification);
 		res.status(201).redirect('/auth/login');
 		console.log('Confirmation Sent! Returned data ' + JSON.stringify(data));
@@ -194,7 +193,10 @@ exports.getVerification = async (req, res, next) => {
 		const data = await apiInstance.sendTransacEmail(confirmationEmail);
 		console.log('Confirmation Sent! Returned data ' + JSON.stringify(data));
 	} catch (err) {
-		console.log(err);
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
 	}
 };
 

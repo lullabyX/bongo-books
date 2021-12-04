@@ -12,37 +12,6 @@ const { deleteFile, deleteMultipleFiles } = require('../util/filehelper');
 const fs = require('fs');
 const path = require('path');
 
-exports.getBooks = async (req, res, next) => {
-	const page = +req.query.page || 1;
-	let totalBooks;
-	let totalPages;
-	try {
-		const books = await Book.findAndCountAll({
-			offset: (page - 1) * process.env.BOOKS_PER_PAGE,
-			limit: process.env.BOOKS_PER_PAGE,
-			where: { userId: req.user.id },
-		});
-		totalBooks = books.count;
-		totalPages = Math.ceil(totalBooks / process.env.BOOKS_PER_PAGE);
-		res.status(200).render('admin/books', {
-			books: books,
-			pageTitle: 'Admin Books',
-			path: '/admin/books',
-			pagination: {
-				currentPage: page,
-				previousPage: page - 1,
-				nextPage: page + 1,
-				totalPages: totalPages,
-			},
-		});
-	} catch (err) {
-		if (!err.statusCode) {
-			err.statusCode = 500;
-		}
-		next(err);
-	}
-};
-
 exports.getAddBook = async (req, res, next) => {
 	try {
 		res.status(200).render('admin/edit-book', {
@@ -199,7 +168,7 @@ exports.postAddBook = async (req, res, next) => {
 			});
 		}
 
-		res.status(201).redirect('/admin/books');
+		res.status(201).redirect('/user/books');
 	} catch (err) {
 		if (book) {
 			await book.destroy();
@@ -469,7 +438,7 @@ exports.getEditBook = async (req, res, next) => {
 			} else {
 				req.flash('error', 'Unauthorized!');
 				await req.session.save();
-				res.status(404).redirect('/admin/books');
+				res.status(404).redirect('/');
 			}
 		} catch (err) {
 			if (!err.statusCode) {
@@ -642,7 +611,7 @@ exports.postEditBook = async (req, res, next) => {
 				});
 			}
 
-			res.status(202).redirect('/admin/books');
+			res.status(202).redirect('/user/books');
 		} else {
 			if (updatedImages.length > 0) {
 				updatedImages.forEach((image) => {
@@ -651,7 +620,7 @@ exports.postEditBook = async (req, res, next) => {
 			}
 			req.flash('error', 'Unauthorized!');
 			await req.session.save();
-			res.status(404).redirect('/admin/books');
+			res.status(404).redirect('/user/books');
 		}
 	} catch (err) {
 		if (updatedImages.length > 0) {
@@ -678,7 +647,7 @@ exports.postDeleteBook = async (req, res, next) => {
 		if (!book) {
 			req.flash('error', 'Book not found!');
 			await req.session.save();
-			res.status(404).redirect('/admin/books');
+			res.status(404).redirect('/');
 		} else {
 			const bookImages = await book.getBookImages();
 			if (bookImages.length > 0) {

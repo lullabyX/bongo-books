@@ -7,15 +7,8 @@ const adminController = require('../controllers/admin');
 const uploadController = require('../controllers/upload');
 const isAdmin = require('../middleware/isAdmin');
 
-// GET -> /admin/books shows listed items by that user
-router.get('/books', isAdmin, adminController.getBooks);
-
 // GET -> /admin/add-book gets the add-book page
-router.get(
-	'/add-book',
-	isAdmin,
-	adminController.getAddBook
-);
+router.get('/add-book', isAdmin, adminController.getAddBook);
 
 // POST -> /admin/add-book posts a book under the user
 router.post(
@@ -75,7 +68,11 @@ router.post(
 );
 
 // GET -> /admin/edit-publication/:publicationId
-router.get('/edit-publication/:publicationId', isAdmin, adminController.getEditPublication);
+router.get(
+	'/edit-publication/:publicationId',
+	isAdmin,
+	adminController.getEditPublication
+);
 
 // POST -> /admin/edit-publication
 router.post(

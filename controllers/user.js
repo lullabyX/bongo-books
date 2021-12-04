@@ -20,6 +20,7 @@ const RatingItem = require('../models/rating-item');
 const BookImage = require('../models/book-image');
 const Author = require('../models/author');
 const Review = require('../models/review');
+const Publication = require('../models/publication');
 
 exports.getBooks = async (req, res, next) => {
 	const page = +req.query.page || 1;
@@ -56,7 +57,7 @@ exports.getCart = async (req, res, next) => {
 	try {
 		const cart = await req.user.getCart();
 		const books = await cart.getBooks({
-			include: [BookImage],
+			include: [BookImage, Author, Publication],
 		});
 
 		res.status(200).render('user/cart', {
@@ -88,6 +89,9 @@ exports.postCart = async (req, res, next) => {
 		await cart.addBook(book, {
 			through: { quantity: newQty },
 		});
+		cart.totalItems += 1;
+		await cart.save();
+		req.user.totalCartItems += 1;
 		res.status(202).json({
 			message: `${book.title} is added to cart`,
 			bookId: book.id,
@@ -202,6 +206,9 @@ exports.postOrder = async (req, res, next) => {
 		order.shippingContact = address.phoneNumber;
 		await order.save();
 		await cart.setBooks(null);
+		cart.totalItems = 0;
+		req.user.totalCartItems = 0;
+		await cart.save();
 		books.forEach(async (book) => {
 			book.sellCount += book.orderItem.quantity;
 			await book.save();
@@ -222,8 +229,11 @@ exports.postCartDeleteItem = async (req, res, next) => {
 		const cart = await req.user.getCart();
 		const books = await cart.getBooks({ where: { id: bookId } });
 		let book = books[0];
+		cart.totalItems -= book.cartItem.quantity;
+		req.user.totalCartItems -= book.cartItem.quantity;
+		await cart.save();
 		await book.cartItem.destroy();
-		res.status(202).redirect('user/cart');
+		res.status(202).redirect('/user/cart');
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
@@ -237,7 +247,7 @@ exports.getOrders = async (req, res, next) => {
 		const orders = await req.user.getOrders({
 			include: {
 				model: Book,
-				include: [BookImage],
+				include: [BookImage, Author, Publication],
 			},
 		});
 
@@ -538,7 +548,21 @@ exports.postDeletePendingBook = async (req, res, next) => {
 exports.getProfile = async (req, res, next) => {
 	const edit = req.query.edit;
 	try {
-		const user = await User.findByPk(req.user.id);
+		const user = await User.findByPk(req.user.id, {
+			include: [AddressBook],
+			attributes: [
+				'id',
+				'username',
+				'email',
+				'userType',
+				'primaryPhone',
+				'avatar',
+				'firstName',
+				'lastName',
+				'employeeId',
+				'createdAt',
+			],
+		});
 		if (!user) {
 			res.status(422).redirect('/');
 		}

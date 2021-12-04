@@ -64,12 +64,22 @@ app.use(
 				'https://code.jquery.com/',
 				"'unsafe-inline'",
 				'https://fonts.googleapis.com/',
+				'https://js.stripe.com',
+				'https://stripe.com',
+				'https://edge-js.stripe.com',
+				'https://pay.google.com',
+				'checkout.stripe.com',
 			],
 			scriptSrc: [
 				"'self'",
 				"'unsafe-eval'",
 				'https://code.jquery.com/',
 				"'unsafe-inline'",
+				'https://stripe.com',
+				'https://js.stripe.com',
+				'https://edge-js.stripe.com',
+				'https://pay.google.com',
+				'checkout.stripe.com',
 			],
 			'style-src': null,
 		},
@@ -93,7 +103,7 @@ app.use(
 	})
 );
 
-app.use(csrfProtection); //uncomment for csrf
+// app.use(csrfProtection); //uncomment for csrf
 app.use(flash());
 
 app.set('view engine', 'ejs');
@@ -104,15 +114,20 @@ app.use((req, res, next) => {
 		return next();
 	} else {
 		User.findByPk(req.session.user.id)
-			.then((user) => {
+			.then(async (user) => {
 				if (!user) {
 					next();
 				}
+				const cart = await user.getCart();
 				req.user = user;
+				req.user.totalCartItems = cart.totalItems;
 				next();
 			})
 			.catch((err) => {
-				console.log(err);
+				if (!err.statusCode) {
+					err.statusCode = 500;
+				}
+				next(err);
 			});
 	}
 });
