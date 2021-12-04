@@ -483,7 +483,7 @@ exports.getEditBook = async (req, res, next) => {
 };
 
 exports.postEditBook = async (req, res, next) => {
-	const bookId = req.body.bookId;
+	const bookId = req.body.bookId || 0;
 	const updatedTitle = req.body.title;
 	const updatedImages = req.files;
 	const updatedPrice = req.body.price;
@@ -1086,6 +1086,27 @@ exports.postEditGenre = async (req, res, next) => {
 		if (image) {
 			deleteFile(image.path);
 		}
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.postDeleteReview = async (req, res, next) => {
+	try {
+		const reviewId = req.body.reviewId;
+		const review = Review.findByPk(reviewId);
+		if (!review) {
+			return res.status(404).json({
+				message: 'Review not found',
+			});
+		}
+		await review.destroy();
+		res.status(201).json({
+			message: 'Review deleted',
+		});
+	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}

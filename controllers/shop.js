@@ -354,6 +354,7 @@ exports.getPublicationBooks = async (req, res, next) => {
 		totalBooks = books.count;
 		totalPages = Math.ceil(totalBooks / process.env.BOOKS_PER_PAGE);
 		res.render('shop/books-of-attribute', {
+			publication: publication,
 			books: books,
 			pageTitle: 'Books | ' + publication.name,
 			path: '/books/publication',

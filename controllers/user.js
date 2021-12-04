@@ -17,6 +17,9 @@ const Rating = require('../models/rating');
 const { createInvoice } = require('../util/createInvoice');
 const sequelize = require('../util/database');
 const RatingItem = require('../models/rating-item');
+const BookImage = require('../models/book-image');
+const Author = require('../models/author');
+const Review = require('../models/review');
 
 exports.getBooks = async (req, res, next) => {
 	const page = +req.query.page || 1;
@@ -52,7 +55,9 @@ exports.getBooks = async (req, res, next) => {
 exports.getCart = async (req, res, next) => {
 	try {
 		const cart = await req.user.getCart();
-		const books = await cart.getBooks();
+		const books = await cart.getBooks({
+			include: [BookImage],
+		});
 
 		res.status(200).render('user/cart', {
 			books: books,
@@ -97,8 +102,10 @@ exports.postCart = async (req, res, next) => {
 
 exports.getShipping = async (req, res, next) => {
 	try {
-		const addresses = req.user.getAddressBooks();
-		const user = User.findByPk(req.user.id);
+		const addresses = await req.user.getAddressBooks();
+		const user = await User.findByPk(req.user.id, {
+			attributes: ['username', 'email', 'avatar', 'id', 'primaryPhone'],
+		});
 		res.status(200).render('user/shipping', {
 			addresses: addresses,
 			user: user,
@@ -132,7 +139,6 @@ exports.getCheckout = async (req, res, next) => {
 		if (name == 'null null' || name == 'null ' || name == ' null') {
 			name = req.user.username;
 		}
-		console.log(books);
 		const stripeSession = await stripe.checkout.sessions.create({
 			payment_method_types: ['card'],
 			line_items: books.map((book) => {
@@ -228,7 +234,12 @@ exports.postCartDeleteItem = async (req, res, next) => {
 
 exports.getOrders = async (req, res, next) => {
 	try {
-		const orders = await req.user.getOrders({ include: Book });
+		const orders = await req.user.getOrders({
+			include: {
+				model: Book,
+				include: [BookImage],
+			},
+		});
 
 		res.status(200).render('user/orders', {
 			pageTitle: 'Your orders',
@@ -478,7 +489,7 @@ exports.getPendingBooks = async (req, res, next) => {
 			where: { userId: req.user.id },
 		});
 		res.status(200).render('user/pending-books', {
-			books: books,
+			pendingbooks: pendingbooks,
 			pageTitle: 'Pending Books',
 			path: '/user/pending-books',
 		});
@@ -878,6 +889,32 @@ exports.postReview = async (req, res, next) => {
 			bookId: bookId,
 			review: review,
 			varifiedPurchase: isVarified,
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.postDeleteReview = async (req, res, next) => {
+	try {
+		const reviewId = req.body.reviewId;
+		const review = Review.findByPk(reviewId);
+		if (!review) {
+			return res.status(404).json({
+				message: 'Review not found',
+			});
+		}
+		if (review.userId != req.user.id) {
+			return res.status(422).json({
+				message: 'Unauthorized',
+			});
+		}
+		await review.destroy();
+		res.status(201).json({
+			message: 'Review deleted',
 		});
 	} catch (err) {
 		if (!err.statusCode) {
