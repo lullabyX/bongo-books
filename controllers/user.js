@@ -717,12 +717,7 @@ exports.postAddAddress = async (req, res, next) => {
 			region: region,
 			phoneNumber: phoneNumber,
 		});
-		res.status(201).json({
-			message: 'Successfully created a new address',
-			address: address,
-			region: region,
-			phoneNumber: phoneNumber,
-		});
+		res.status(201).redirect('/user/profile');
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
