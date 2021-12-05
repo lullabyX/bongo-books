@@ -39,10 +39,8 @@ const PendingBookImage = require('./models/pending-book-image');
 const Rating = require('./models/rating');
 const RatingItem = require('./models/rating-item');
 const Review = require('./models/review');
-const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
-const { format } = require('path');
 
 const app = express();
 
@@ -53,38 +51,39 @@ const accessLogStream = fs.createWriteStream(
 	{ flags: 'a' }
 );
 
-app.use(
-	helmet.contentSecurityPolicy({
-		useDefaults: true,
-		directives: {
-			'img-src': ["'self'", 'https://avatars.dicebear.com'],
-			defaultSrc: [
-				"'self'",
-				"'unsafe-eval'",
-				'https://code.jquery.com/',
-				"'unsafe-inline'",
-				'https://fonts.googleapis.com/',
-				'https://js.stripe.com',
-				'https://stripe.com',
-				'https://edge-js.stripe.com',
-				'https://pay.google.com',
-				'checkout.stripe.com',
-			],
-			scriptSrc: [
-				"'self'",
-				"'unsafe-eval'",
-				'https://code.jquery.com/',
-				"'unsafe-inline'",
-				'https://stripe.com',
-				'https://js.stripe.com',
-				'https://edge-js.stripe.com',
-				'https://pay.google.com',
-				'checkout.stripe.com',
-			],
-			'style-src': null,
-		},
-	})
-);
+// app.use(
+// 	helmet.contentSecurityPolicy({
+// 		useDefaults: true,
+// 		directives: {
+// 			'img-src': ["'self'", 'https://avatars.dicebear.com'],
+// 			defaultSrc: [
+// 				"'self'",
+// 				"'unsafe-eval'",
+// 				'https://code.jquery.com/',
+// 				"'unsafe-inline'",
+// 				'https://fonts.googleapis.com/',
+// 				'https://js.stripe.com',
+// 				'https://stripe.com',
+// 				'https://edge-js.stripe.com',
+// 				'https://pay.google.com',
+// 				'checkout.stripe.com',
+// 			],
+// 			scriptSrc: [
+// 				"'self'",
+// 				"'unsafe-eval'",
+// 				'https://code.jquery.com/',
+// 				"'unsafe-inline'",
+// 				'https://stripe.com',
+// 				'https://js.stripe.com',
+// 				'https://edge-js.stripe.com',
+// 				'https://pay.google.com',
+// 				'checkout.stripe.com',
+// 			],
+// 			'style-src': null,
+// 			'script-src-attr': ['unsafe-hashes', 'unsafe-inline'],
+// 		},
+// 	})
+// );
 app.use(compression());
 app.use(morgan('combined', { stream: accessLogStream }));
 
