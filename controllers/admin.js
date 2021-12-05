@@ -810,6 +810,7 @@ exports.postEditAuthor = async (req, res, next) => {
 exports.getAddPublication = async (req, res, next) => {
 	try {
 		res.status(200).render('admin/add-publication', {
+			edit: false,
 			pageTitle: 'Add Publication',
 			path: '/admin/add-publication',
 		});
@@ -943,6 +944,7 @@ exports.postEditPublication = async (req, res, next) => {
 exports.getAddGenre = async (req, res, next) => {
 	try {
 		res.status(200).render('admin/add-genre', {
+			edit: false,
 			pageTitle: 'Genres',
 			path: '/admin/add-genre',
 		});
