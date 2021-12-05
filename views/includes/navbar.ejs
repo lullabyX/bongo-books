@@ -2,7 +2,7 @@
     <div class="ui secondary menu" id="menu" style="background-color: azure;height: 45px;">
         <div class="item">
             <h3>
-                <a href="/"  style="color:black;">BongoBooks</a>
+                <a href="/" style="color:black;">BongoBooks</a>
             </h3>
         </div>
 
@@ -25,71 +25,78 @@
                 Sell Book
             </a>
 
-        <% } %>
 
-
-
-        <% if (isAdmin) { %>
-            <div class="ui dropdown item">
-                Action
-                <i class="dropdown icon"></i>
-                <div class="menu">
-                    <a class="item" href="/admin/add-book">Add Book</a>
-                    <a class="item" href="/admin/add-author">Add Author</a>
-                    <a class="item" href="/admin/add-publication">Add Publication</a>
-                    <a class="item" href="/admin/add-genre">Add Genre</a>
-                    <a class="item" href="/admin/pending-books">Pending Books</a>
-                </div>
-            </div>
             <% } %>
 
-                <div class="right menu">
-                    <div class="item">
-                        <div class="ui icon input">
-                            <input type="text" placeholder="Search...">
-                            <i class="search link icon"></i>
+
+
+                <% if (isAdmin) { %>
+                    <div class="ui dropdown item">
+                        Action
+                        <i class="dropdown icon"></i>
+                        <div class="menu">
+                            <a class="item" href="/admin/add-book">Add Book</a>
+                            <a class="item" href="/admin/add-author">Add Author</a>
+                            <a class="item" href="/admin/add-publication">Add Publication</a>
+                            <a class="item" href="/admin/add-genre">Add Genre</a>
+                            <a class="item" href="/admin/pending-books">Pending Books</a>
                         </div>
                     </div>
-                    <a class="item" href="/user/cart">
-                           <i class="shopping cart icon"></i>
-
-
-                    </a>
-
-                    <% if (isAuthenticated) { %>
-
-                        <div class="ui inline dropdown item">
-                            <!-- <i class="user circle icon"></i> -->
-                            <!-- <div class="none" style="height: 10px;"> -->
-                                <img class="ui avatar image" src="<%= avatar %> ">
-                                <b><%= username %></b>
-                            <!-- </div> -->
-
-
-                            <i class="dropdown icon"></i>
-                            <div class="menu">
-                                <a class="item" href="/user/profile">Profile</a>
-                                <a class="item" href="/user/orders">My orders</a>
-                                <form action="/auth/logout" method="post">
-                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" >
-                                    <button class="ui item" type="submit">Logout</button>
-                                </form>
-                                <!-- </div> -->
-
-                                <!-- <button class="item" onclick="signout('/auth/logout', null)">Logout</button> -->
-
-
-                            </div>
-                        </div>
-
-                    <% } else { %>
-                            <a class="item" href="/auth/login">
-                                Login
-                            </a>
                     <% } %>
 
+                        <div class="right menu">
+                            <div class="item">
+                                <div class="ui icon input">
+                                    <input id="search-box" type="text" placeholder="Search...">
+                                    <i class="search link icon" onclick="search()"></i>
+                                </div>
+                            </div>
+                            <a class="item" href="/user/cart">
+                                <i class="shopping cart icon"></i>
 
-                </div>
+
+                            </a>
+
+                            <% if (isAuthenticated) { %>
+
+                                <div class="ui inline dropdown item" id="inline-avatar">
+                                    <!-- <i class="user circle icon"></i> -->
+                                    <!-- <div class="none" style="height: 10px;"> -->
+                                    <img class="ui avatar image" src="<%= avatar %> ">
+                                    <b>
+                                        <%= username %>
+                                    </b>
+                                    <!-- </div> -->
+
+
+                                    <i class="dropdown icon"></i>
+                                    <div class="menu">
+                                        <a class="item" href="/user/profile">Profile</a>
+                                        <a class="item" href="/user/books">
+                                            My Books
+                                        </a>
+                                        <a class="item" href="/user/orders">My Orders</a>
+                                        <a class="item" href="/user/pending-books">Pending Books</a>
+                                        <form action="/auth/logout" method="post">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                            <button class="ui item" type="submit">Logout</button>
+                                        </form>
+                                        <!-- </div> -->
+
+                                        <!-- <button class="item" onclick="signout('/auth/logout', null)">Logout</button> -->
+
+
+                                    </div>
+                                </div>
+
+                                <% } else { %>
+                                    <a class="item" href="/auth/login">
+                                        Login
+                                    </a>
+                                    <% } %>
+
+
+                        </div>
     </div>
 </div>
 
@@ -101,11 +108,11 @@
         <div class="column" style="width: 750px;">
             <div class="ui secondary inverted green segment" style="width: 100%;">
 
-                <% if (typeof successMessage[0] === "object") { %>
+                <% if (typeof successMessage[0]==="object" ) { %>
                     <%= successMessage[0].msg %>
-                <% } else { %>
-                    <%= successMessage[0] %>
-                <% } %>
+                        <% } else { %>
+                            <%= successMessage[0] %>
+                                <% } %>
 
             </div>
         </div>
@@ -114,11 +121,11 @@
         <div class="ui middle aligned center aligned grid" style="margin-top:5px;">
             <div class="column" style="width: 750px;">
                 <div class="ui secondary inverted red segment" style="width: 100%;">
-                    <% if (typeof errorMessage[0] === "object") { %>
+                    <% if (typeof errorMessage[0]==="object" ) { %>
                         <%= errorMessage[0].msg %>
-                    <% } else { %>
-                        <%= errorMessage[0] %>
-                    <% } %>
+                            <% } else { %>
+                                <%= errorMessage[0] %>
+                                    <% } %>
 
 
 
@@ -126,52 +133,96 @@
                 </div>
             </div>
         </div>
-    <% } %>
+        <% } %>
 
 
 
-<script>
-    $(document).ready(function () {
-        $('.ui.dropdown')
-            .dropdown();
-        $('.ui.sticky')
-            .sticky();
-    });
+            <script>
+                $(document).ready(function () {
+                    $('.ui.dropdown')
+                        .dropdown();
+                    $('.ui.sticky')
+                        .sticky();
 
-    function signout(endpoint, data) {
-        //console.log(data);
-        fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'csrf-token': '<%= csrfToken %>',
-                //'Content-Security-Policy': "default-src 'http:';",
-                //'Content-Type': 'application/json',
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: data,
-        })
-        .then(result => {
-            window.location.replace('/books');
-            return result;
-        })
-        .then(data => {
-            console.log(data);
+                });
 
-        })
-        .catch(err => {
-            console.log(err);
-        })
+                function signout(endpoint, data) {
+                    //console.log(data);
+                    fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'csrf-token': '<%= csrfToken %>',
+                            //'Content-Security-Policy': "default-src 'http:';",
+                            //'Content-Type': 'application/json',
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: data,
+                    })
+                        .then(result => {
+                            window.location.replace('/books');
+                            return result;
+                        })
+                        .then(data => {
+                            console.log(data);
+
+                        })
+                        .catch(err => {
+                            console.log(err);
+                        })
+                }
+
+                function postDeleteBook(endpoint, bookId, btn) {
+
+                    //const productElement = btn.closest('article');
+                    //console.log(productElement)
+
+                    var encodedKey = encodeURIComponent('bookId');
+                    var encodedValue = encodeURIComponent(bookId);
+                    var data = encodedKey + '=' + encodedValue;
+                    fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'csrf-token': '<%= csrfToken %>',
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: data,
+                    })
+                        .then(result => {
+                            console.log(result)
+                            return JSON.stringify(result);
+
+                        })
+                        .then(data => {
+                            console.log(data);
+                            //productElement.parentNode.removeChild(productElement);
+                            var card_id = 'card_' + bookId;
+                            console.log(card_id);
+                            var obj = document.getElementById(card_id);
+                            if (obj != null) {
+                                obj.remove();
+                            }
+
+                            if (window.location.href.indexOf("book-detail") > -1) {
+                                window.location.replace('/books');
+                            }
+                        })
+                        .catch(err => {
+                            console.log(err);
+                        })
+                }
+
+    function search() {
+        let searchBox = document.getElementById("search-box");
+        let term = searchBox.value;
+        location.href = '/search?term=' + term;
     }
 
-    function postDeleteBook(endpoint, bookId, btn) {
-
-        //const productElement = btn.closest('article');
-        //console.log(productElement)
+    function addToCart(bookId) {
 
         var encodedKey = encodeURIComponent('bookId');
         var encodedValue = encodeURIComponent(bookId);
-        var data=encodedKey+'='+encodedValue;
-        fetch(endpoint, {
+        var data = encodedKey + '=' + encodedValue;
+        fetch('/user/cart', {
             method: 'POST',
             headers: {
                 'csrf-token': '<%= csrfToken %>',
@@ -179,30 +230,24 @@
             },
             body: data,
         })
-        .then(result => {
-            console.log(result)
-            return JSON.stringify(result);
+            .then(result => {
+                console.log(result)
+                return result.json();
 
-        })
-        .then(data => {
-            console.log(data);
-            //productElement.parentNode.removeChild(productElement);
-            var card_id = 'card_'+ bookId;
-            console.log(card_id);
-            var obj = document.getElementById(card_id);
-            if (obj != null){
-                obj.remove();
-            }
+            })
+            .then(data => {
+                console.log(data);
+                alert(data.message);
 
-            if (window.location.href.indexOf("book-detail") > -1) {
-                window.location.replace('/books');
-            }
-        })
-        .catch(err => {
-            console.log(err);
-        })
+            })
+            .catch(err => {
+                console.log(err);
+            })
+
     }
 
 
 
-</script>
+
+
+            </script>

@@ -11,6 +11,7 @@ const GenreItem = require('../models/genre-items');
 const { deleteFile, deleteMultipleFiles } = require('../util/filehelper');
 const fs = require('fs');
 const path = require('path');
+const PendingBookImage = require('../models/pending-book-image');
 
 exports.getAddBook = async (req, res, next) => {
 	try {
@@ -189,9 +190,11 @@ exports.getPendingBooks = async (req, res, next) => {
 		const pendingBooks = await PendingBook.findAndCountAll({
 			offset: (page - 1) * process.env.BOOKS_PER_PAGE,
 			limit: process.env.BOOKS_PER_PAGE,
+			include: [PendingBookImage],
 		});
 		totalBooks = pendingBooks.count;
 		totalPages = Math.ceil(totalBooks / process.env.BOOKS_PER_PAGE);
+		console.log(pendingBooks);
 		res.status(200).render('admin/pending-books', {
 			books: pendingBooks,
 			pageTitle: 'Pending Books',
@@ -212,15 +215,19 @@ exports.getPendingBooks = async (req, res, next) => {
 };
 
 exports.getPendingBook = async (req, res, next) => {
+	const editing = req.query.edit;
 	const pendingBookId = req.params.pendingBookId;
 	try {
-		const pendingBook = await PendingBook.findByPk(pendingBookId);
+		const pendingBook = await PendingBook.findByPk(pendingBookId, {
+			include: [PendingBookImage],
+		});
 		if (!pendingBook) {
 			req.flash('error', 'Book not found in Pending-Books.');
 			await req.session.save();
 			return res.status(404).redirect('/admin/pending-books');
 		}
 		res.status(200).render('admin/edit-book', {
+			edit: editing,
 			book: pendingBook,
 			pageTitle: 'Verifying ' + pendingBook.title,
 			path: '/admin/pending-book',
@@ -388,7 +395,7 @@ exports.postVerifyPendingBook = async (req, res, next) => {
 };
 
 exports.postDeletePendingBook = async (req, res, next) => {
-	const bookId = req.body.pendingBookId;
+	const bookId = req.body.bookId;
 
 	try {
 		const pendingBook = await PendingBook.findByPk(bookId);

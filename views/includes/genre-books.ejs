@@ -4,15 +4,7 @@
         <div class="ui placeholder segment">
             <div class="ui internally celled grid">
 
-                <div class="five wide column">
-                    <div class="ui centered card">
-
-                        <img style="height: 100%; width: 100%;" src="<%= genre.imageUrl %> ">
-
-
-                    </div>
-
-                </div>
+                
                 <div class="eleven wide column">
 
                     <div class="ui card" style="box-shadow: none;background-color: transparent;height: 100%;width: 100%;">
@@ -41,7 +33,7 @@
                         </div>
 
                         <div class="extra">
-                          <button class="ui button">Edit</button>
+                          <a href="/admin/edit-genre/<%= genre.id %>?edit=true" class="ui button">Edit Genre</a>
 
                         </div>
                       </div>
@@ -53,13 +45,12 @@
 
 
 
-
+        <h4 class="ui horizontal divider header">
+          <i class="book icon"></i>
+          Books from this genre
+      </h4>
 
 
     </div>
 </div>
 
-<h4 class="ui horizontal divider header">
-    <i class="book icon"></i>
-    Books from this genre
-</h4>

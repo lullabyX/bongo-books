@@ -52,6 +52,8 @@ exports.postLogin = async (req, res, next) => {
 		const storedPassword = user.password;
 		const doMatch = await bcrypt.compare(password, storedPassword);
 		if (!doMatch) {
+			req.flash('error', 'Incorrect Password');
+			await req.session.save();
 			return res.status(404).redirect('/auth/login');
 		}
 		req.session.user = user;
@@ -118,8 +120,6 @@ exports.postSignup = async (req, res, next) => {
 			await pendingUser.save();
 		}
 
-		req.flash('success', 'Verification link sent to email!');
-		await req.session.save();
 		emailVerification = {
 			to: [
 				{
@@ -137,6 +137,8 @@ exports.postSignup = async (req, res, next) => {
 			},
 		};
 		const data = await apiInstance.sendTransacEmail(emailVerification);
+		req.flash('success', 'Verification link sent to email!');
+		await req.session.save();
 		res.status(201).redirect('/auth/login');
 		console.log('Confirmation Sent! Returned data ' + JSON.stringify(data));
 	} catch (err) {
@@ -242,8 +244,6 @@ exports.postPasswordReset = async (req, res, next) => {
 		user.resetToken = token;
 		user.resetTokenTimeout = Date.now() + 3600000; // 1 hour
 		await user.save();
-		await req.session.save();
-		res.status(202).redirect('/auth/reset');
 		passwordResetEmail = {
 			to: [
 				{
@@ -258,6 +258,9 @@ exports.postPasswordReset = async (req, res, next) => {
 			},
 		};
 		const data = await apiInstance.sendTransacEmail(passwordResetEmail);
+		req.flash('success', 'Reset link is sent to your E-Mail');
+		await req.session.save();
+		res.status(202).redirect('/auth/reset');
 		console.log('Reset Link Sent! Returned data ' + JSON.stringify(data));
 	} catch (err) {
 		if (!err.statusCode) {

@@ -4,9 +4,34 @@
         <title><%= pageTitle %> </title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="css/style.css" rel="stylesheet">
+        <%- include('../includes/styles.ejs') %>
     </head>
     <body>
-    <a href="/user/checkout?id=<%= addresses[0].id %>">Proceed to Pay</a>
+        <%- include('../includes/navbar.ejs') %>
+        <div class="ui placeholder segment" style="width: 750px; margin: auto; margin-top: 20px;">
+    <form class="ui form" style="margin: auto" action="/user/checkout" method="get">
+        <div class="grouped fields" style="margin: auto">
+          <label><h1>Select a shipping address</h1></label>
+          <% for( address of addresses ) { %>
+            <div class="field" style="margin-top: 20px; margin-bottom: 20px;">
+                <div class="ui radio checkbox">
+                  <input type="radio" name="id" value="<%= address.id %>" checked>
+                  <label>
+                      <div style="width:700px;margin: auto">
+                          Address: <%= address.address %><br>
+                          Region: <%= address.region %><br>
+                          Phone: <%= address.phoneNumber %><br>
+                      </div>
+                  </label>
+                </div>
+            </div>
+          <% } %>
+        </div>
+        <button class="ui button left floated">Proceed to pay</button>
+        <a href="/user/profile?edit=true">
+        <button class="ui button" type="button">Add new address</button>
+        </a>
+    </form>
+    </div>
     </body>
 </html>

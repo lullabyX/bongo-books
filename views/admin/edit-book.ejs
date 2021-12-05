@@ -41,9 +41,16 @@
             language = book.language;
             description = book.description;
         }
+        if (path === '/admin/pending-book') {
+            title = book.title;
+            price = book.price;
+            ISBN = book.ISBN;
+            description = book.description
+        }
     %>
 
-        <div class="ui middle aligned center aligned grid" style="margin-top: 5px;height:50%;width:650px;margin:auto"">
+        <% if (path!=='/admin/pending-book') { %>
+         <div class="ui middle aligned center aligned grid" style="margin-top: 5px;height:50%;width:650px;margin:auto"">
             <div class="column">
 
                 <h2 class="ui image header">
@@ -154,7 +161,7 @@
                             <div class="ui label">
                                 Description
                             </div>
-                            <textarea type="text" rows="4" name="description" placeholder="Description" value="what this"></textarea>
+                            <textarea type="text" rows="4" name="description" placeholder="Description"><%= description %></textarea>
                         </div>
                     </div>
 
@@ -178,6 +185,131 @@
 
             </div>
         </div>
+        <% } else { %>
+        <div class="ui middle aligned center aligned grid" style="margin-top:20px;">
+      <div class="column" style="width: 750px;">
+
+        <div class="ui placeholder segment">
+          <div class="ui internally celled grid">
+            <div class="five wide column">
+                <div class="ui centered card">
+                    <img style="height: 100%; width: 100%;" src="<%= book.pendingBookImages[0].imageUrl %> ">
+                </div>
+            </div>
+            <div class="eleven wide column" align=left>
+
+              <div class="ui card" style="box-shadow: none;background-color: transparent;height: 100%;width: 100%;">
+                <div class="content" align="justify">
+                  <div class="header">
+                    <h1 style="margin: 0px;">
+                      <%= book.title %>
+                    </h1>
+
+                </div>
+                <div class="header">
+                    <h3 style="margin: 0px;">
+                      $<%= book.price %>
+                    </h3>
+                </div>
+
+                  <div class="description">
+                    <p>
+                      Description: <%= book.description %>
+                    </p>
+                  </div>
+
+
+
+            </div>
+            </div>
+            </div>
+            </div>
+            </div>
+<div class="ui middle aligned center aligned grid" style="margin-top: 5px;height:50%;width:650px;margin:auto"">
+            <div class="column">
+
+                <h2 class="ui image header">
+                    <div class="content">
+                        Verify Pending Book
+                    </div>
+                </h2>
+
+                <form class="ui form" action="<%= path %>?_csrf=<%= csrfToken %>"  enctype='application/x-www-form-urlencoded' method="post">
+                    <div class="field">
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                Authors
+                            </div>
+                            <input type="text" name="authors" placeholder="Authors" value="<%= authors %>">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                Publication
+                            </div>
+                            <input type="text" name="publicationName" placeholder="Publication" value="<%= publication %>">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                ISBN
+                            </div>
+                            <input type="text" name="ISBN" placeholder="ISBN" value="<%= ISBN %>">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                Year
+                            </div>
+                            <input type="text" name="publishDate" placeholder="Publish Date" value="<%= publishDate %>">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                Genres
+                            </div>
+                            <input type="text" name="genres" placeholder="Genres" value="<%= genres %>">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                Tags
+                            </div>
+                            <input type="text" name="tags" placeholder="Tags" value="<%= tags %>">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                Language
+                            </div>
+                            <input type="text" name="language" placeholder="Language" value="<%= language %>">
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="pendingBookId" value="<%= book.id %>">
+                    <!-- <input type="hidden" name="_csrf" value="<%= csrfToken %>" > -->
+                    <button class="ui button" type="submit">Verify book</button>
+
+
+                </form>
+
+            </div>
+        </div>
+        <% } %>
+        
+        
 
 </body>
 

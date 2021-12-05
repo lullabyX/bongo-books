@@ -21,6 +21,7 @@ const BookImage = require('../models/book-image');
 const Author = require('../models/author');
 const Review = require('../models/review');
 const Publication = require('../models/publication');
+const PendingBookImage = require('../models/pending-book-image');
 
 exports.getBooks = async (req, res, next) => {
 	const page = +req.query.page || 1;
@@ -31,6 +32,7 @@ exports.getBooks = async (req, res, next) => {
 			offset: (page - 1) * process.env.BOOKS_PER_PAGE,
 			limit: process.env.BOOKS_PER_PAGE,
 			where: { userId: req.user.id },
+			include: [BookImage, Author, Publication],
 		});
 		totalBooks = books.count;
 		totalPages = Math.ceil(totalBooks / process.env.BOOKS_PER_PAGE);
@@ -110,6 +112,12 @@ exports.getShipping = async (req, res, next) => {
 		const user = await User.findByPk(req.user.id, {
 			attributes: ['username', 'email', 'avatar', 'id', 'primaryPhone'],
 		});
+		const cart = await user.getCart();
+		if (cart.totalItems == 0) {
+			req.flash('error', 'Your cart is empty');
+			await req.session.save();
+			return res.status(404).redirect('/user/cart');
+		}
 		res.status(200).render('user/shipping', {
 			addresses: addresses,
 			user: user,
@@ -135,7 +143,14 @@ exports.getCheckout = async (req, res, next) => {
 			return res.status(404).redirect('/user/cart');
 		}
 		const cart = await req.user.getCart();
-		const books = await cart.getBooks();
+		const books = await cart.getBooks({
+			include: [BookImage, Author, Publication],
+		});
+		if (books.length <= 0) {
+			req.flash('error', 'Your cart is empty');
+			await req.session.save();
+			return res.status(404).redirect('/user/cart');
+		}
 		books.forEach((book) => {
 			total += book.price * book.cartItem.quantity;
 		});
@@ -147,8 +162,8 @@ exports.getCheckout = async (req, res, next) => {
 			payment_method_types: ['card'],
 			line_items: books.map((book) => {
 				return {
-					name: book.title,
-					description: book.description,
+					name: book.title || 'no title',
+					description: book.description || 'no description',
 					amount: (book.price * 100).toFixed(0),
 					quantity: +book.cartItem.quantity,
 					currency: 'usd',
@@ -250,7 +265,6 @@ exports.getOrders = async (req, res, next) => {
 				include: [BookImage, Author, Publication],
 			},
 		});
-
 		res.status(200).render('user/orders', {
 			pageTitle: 'Your orders',
 			path: '/user/orders',
@@ -283,7 +297,7 @@ exports.postAddBook = async (req, res, next) => {
 	const images = req.files;
 	const price = req.body.price;
 	const ISBN = req.body.ISBN;
-	const description = req.body.description;
+	const description = req.body.description || '';
 
 	let pendingBook;
 
@@ -495,11 +509,13 @@ exports.postDeleteBook = async (req, res, next) => {
 
 exports.getPendingBooks = async (req, res, next) => {
 	try {
-		const pendingbooks = await PendingBook.findAll({
+		const pendingbooks = await PendingBook.findAndCountAll({
 			where: { userId: req.user.id },
+			include: [PendingBookImage],
 		});
+		console.log(pendingbooks);
 		res.status(200).render('user/pending-books', {
-			pendingbooks: pendingbooks,
+			books: pendingbooks,
 			pageTitle: 'Pending Books',
 			path: '/user/pending-books',
 		});
@@ -701,12 +717,7 @@ exports.postAddAddress = async (req, res, next) => {
 			region: region,
 			phoneNumber: phoneNumber,
 		});
-		res.status(201).json({
-			message: 'Successfully created a new address',
-			address: address,
-			region: region,
-			phoneNumber: phoneNumber,
-		});
+		res.status(201).redirect('/user/profile');
 	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;

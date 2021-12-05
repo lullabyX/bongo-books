@@ -36,20 +36,16 @@
                     <div class="ui internally celled grid">
 
                         <div class="five wide column">
-                            <div class="ui centered card">
+                            <div class="ui centered card" id="avatar">
 
                                 <img style="height: 100%; width: 100%;" src="<%= user.avatar %> ">
 
 
                             </div>
-                            <form class="ui form" id="random_form" action="/user/profile/random-avatar" method='post'>
-                                <input type="hidden" name="_csrf" value="<%= csrfToken %>" >
-                                <button class="ui button left floated" type="submit">Random</button>
-                            </form>
-                            <form class="ui form" action="/user/profile/reset-avatar" method='post'>
-                                <input type="hidden" name="_csrf" value="<%= csrfToken %>" >
-                                <button class="ui button right floated" type="submit">Reset</button>
-                            </form>
+
+                            <button class="ui button left floated" onclick="changeAvatar('/user/profile/random-avatar')">Random</button>
+                            <button class="ui button right floated" onclick="changeAvatar('/user/profile/reset-avatar')">Reset</button>
+
                         </div>
                         <div class="eight wide column">
 
@@ -110,8 +106,36 @@
             </div>
         </div>
 
-        <% console.dir(user) %> 
+        <% console.dir(user) %>
 
 </body>
+
+<script>
+    function changeAvatar(endpoint) {
+        //console.log(data);
+        fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'csrf-token': '<%= csrfToken %>',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: null,
+        })
+        .then(result => {
+            // window.location.replace('/books');
+            return result;
+        })
+        .then(data => {
+            console.log(data);
+            $("#avatar").load(" #avatar > *");
+            $("#inline-avatar").load(" #inline-avatar > *");
+
+
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    }
+</script>
 
 </html>
