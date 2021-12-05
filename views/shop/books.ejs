@@ -73,22 +73,11 @@
 									<!-- <div class="ui bottom attached button"> -->
 									<!-- <i class="shopping cart icon"></i> -->
 									<!-- <a href=""> Add to cart </a> -->
-									<form action="/user/cart" method="post">
-										<input
-											type="hidden"
-											name="_csrf"
-											value="<%= csrfToken %>"
-										/>
-										<input
-											type="hidden"
-											name="bookId"
-											value="<%= book.id %>"
-										/>
-										<button class="ui button" type="submit">
+
+										<button class="ui button" onclick="addToCart('<%= book.id %>')">
 											Add to cart
 										</button>
-									</form>
-									<!-- </div> -->
+									
 								</div>
 
 								<% if (isAdmin) { %>

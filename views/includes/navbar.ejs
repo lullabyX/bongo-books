@@ -217,6 +217,35 @@
         location.href = '/search?term=' + term;
     }
 
+    function addToCart(bookId) {
+
+        var encodedKey = encodeURIComponent('bookId');
+        var encodedValue = encodeURIComponent(bookId);
+        var data = encodedKey + '=' + encodedValue;
+        fetch('/user/cart', {
+            method: 'POST',
+            headers: {
+                'csrf-token': '<%= csrfToken %>',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: data,
+        })
+            .then(result => {
+                console.log(result)
+                return result.json();
+
+            })
+            .then(data => {
+                console.log(data);
+                alert(data.message);
+
+            })
+            .catch(err => {
+                console.log(err);
+            })
+
+    }
+
 
 
 

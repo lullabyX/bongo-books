@@ -73,11 +73,41 @@
                     </p>
                 </div>
             </div>
+            <button class="ui button right floated" onclick="deleteAddress('<%= address.id %>')">Delete</button>
         </div>
 
-        <% } %>
+    <% } %>
 </div>
 
+<script>
+    function deleteAddress(addressId) {
+        var encodedKey = encodeURIComponent('addressId');
+        var encodedValue = encodeURIComponent(addressId);
+        var data = encodedKey + '=' + encodedValue;
+        fetch('/user/profile/delete-address', {
+            method: 'POST',
+            headers: {
+                'csrf-token': '<%= csrfToken %>',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: data,
+        })
+            .then(result => {
+                console.log(result)
+                return result.json();
+
+            })
+            .then(data => {
+                console.log(data);
+                alert(data.message);
+                $('#address_feed').load(' #address_feed > *');
+
+            })
+            .catch(err => {
+                console.log(err);
+            })
+    }
+</script>
 
 
 
