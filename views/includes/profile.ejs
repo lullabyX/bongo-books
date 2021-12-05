@@ -42,3 +42,42 @@
     </tbody>
 
 </table>
+
+<h4 class="ui horizontal divider header">
+    <i class="shipping fast icon"></i>
+    Address
+</h4>
+
+<div class="ui feed" id='address_feed'>
+    <% for( let address of user.addressBooks ) { %>
+
+        <div class="event">
+            <div class="label">
+                <img src="<%= user.avatar %> ">
+            </div>
+            <div class="content">
+                <div class="summary">
+                    <a class="user">
+                        <%= user.username %>
+                    </a> added an address on
+                    <div class="date">
+                        <%= address.createdAt %>
+                    </div>
+                </div>
+                <div class="extra text">
+                    <p>Phone: <%= address.phoneNumber %>
+                    </p>
+                    <p>Address: <%= address.address %>
+                    </p>
+                    <p>Region: <%= address.region %>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <% } %>
+</div>
+
+
+
+

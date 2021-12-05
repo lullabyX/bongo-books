@@ -9,14 +9,39 @@
 
   <body>
     <%- include('../includes/navbar.ejs') %>
-    <h1 align="center">Following items are in your cart!</h1>
+    <h1 align="center">Order history</h1>
     <div class="ui placeholder segment" style="width: 750px; margin: auto">
       <div
         class="ui internally celled grid"
         style="border: 1px solid; margin: auto"
       >
 
-      <% console.dir(orders) %> 
+      <% console.dir(orders) %>
+
+      <% for ( let order of orders ) { %>
+
+        <div class="row">
+          <div class="three wide column">
+            <p><b>Order id:</b> <%= order.id %></p>
+            <p><b>Order date:</b> <%= order.createdAt %> </p>
+          </div>
+          <div class="nine wide column">
+            <h4>List of books:</h4>
+            <% for( let book of order.books ) { %>
+                <%= book.title %><br>
+            <% } %>
+            <h4>Shipped to:</h4>
+            <%= order.shippingAddress %>, <%= order.shippingRegion %>
+          </div>
+          <div class="four wide column">
+
+            <a href="/user/order/<%= order.id %>"><button class="ui button" style="margin: auto;">Print invoice</button></a>
+
+          </div>
+
+        </div>
+
+      <% } %>
 
       </div>
 

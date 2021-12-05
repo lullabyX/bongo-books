@@ -9,16 +9,20 @@
 
 	<body>
 		<%- include('../includes/navbar.ejs') %>
+		<%- include('../includes/filter.ejs') %>
 
 		<main>
 			<% if (books.length> 0) { %>
 
 			<div
 				class="ui middle aligned center aligned grid"
-				style="margin-top: 20px; width: 1100px"
+				style="margin-top: 20px; width: 1100px; margin:auto"
 			>
+
 				<div class="column" style="max-width: 1100px; margin: auto">
+
 					<div class="ui four cards" style="margin: auto">
+
 						<% for (let book of books) { %>
 
 						<a
