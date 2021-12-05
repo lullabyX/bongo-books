@@ -94,7 +94,7 @@ router.post(
 );
 
 // GET -> /admin/edit-genre/genreId
-router.get('/edit-genre/:genreId', isAdmin, adminController.getEditAuthor);
+router.get('/edit-genre/:genreId', isAdmin, adminController.getEditGenre);
 
 // POST -> /admin/edit-genre
 router.post(

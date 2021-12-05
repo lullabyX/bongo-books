@@ -31,17 +31,17 @@
 
                 <h2 class="ui image header">
                     <div class="content">
-                        Add genre
+                        <% if(edit) { %> Edit Genre <% } else { %> Add Genre <% } %>
                     </div>
                 </h2>
 
-                <form class="ui form" action="/admin/add-genre?_csrf=<%= csrfToken %>" enctype='multipart/form-data' method="post">
+                <form class="ui form" action="<% if(edit) { %>/admin/edit-genre<% } else { %>/admin/add-genre<% } %>?_csrf=<%= csrfToken %>" enctype='multipart/form-data' method="post">
                     <div class="field">
                         <div class="ui labeled input">
                             <div class="ui label">
                                 Name
                             </div>
-                            <input type="text" name="name" placeholder="">
+                            <input type="text" name="name" placeholder="Genre Name" value="<% if (edit) { %><%= genre.name %><% } %>">
                         </div>
                     </div>
 
@@ -50,13 +50,15 @@
                             <div class="ui label">
                                 Description
                             </div>
-                            <textarea type="text" rows="4" name="description" placeholder="Description"></textarea>
+                            <textarea type="text" rows="4" name="description" placeholder="Description"><% if (edit) { %><%= genre.description %><% } %></textarea>
                         </div>
                     </div>
 
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>" >
-
-                    <button class="ui button" type="submit">Add genre</button>
+                    <% if (edit) { %>
+                    <input type="hidden" name="id" value="<%= genre.id %>">
+                    <% } %>
+                    <button class="ui button" type="submit"><% if(edit) { %> Edit Genre <% } else { %> Add Genre <% } %></button>
                 </form>
 
             </div>

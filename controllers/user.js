@@ -112,6 +112,12 @@ exports.getShipping = async (req, res, next) => {
 		const user = await User.findByPk(req.user.id, {
 			attributes: ['username', 'email', 'avatar', 'id', 'primaryPhone'],
 		});
+		const cart = await user.getCart();
+		if (cart.totalItems == 0) {
+			req.flash('error', 'Your cart is empty');
+			await req.session.save();
+			return res.status(404).redirect('/user/cart');
+		}
 		res.status(200).render('user/shipping', {
 			addresses: addresses,
 			user: user,
@@ -140,6 +146,11 @@ exports.getCheckout = async (req, res, next) => {
 		const books = await cart.getBooks({
 			include: [BookImage, Author, Publication],
 		});
+		if (books.length <= 0) {
+			req.flash('error', 'Your cart is empty');
+			await req.session.save();
+			return res.status(404).redirect('/user/cart');
+		}
 		books.forEach((book) => {
 			total += book.price * book.cartItem.quantity;
 		});
@@ -254,7 +265,6 @@ exports.getOrders = async (req, res, next) => {
 				include: [BookImage, Author, Publication],
 			},
 		});
-		console.log(orders[0].books[0]);
 		res.status(200).render('user/orders', {
 			pageTitle: 'Your orders',
 			path: '/user/orders',
