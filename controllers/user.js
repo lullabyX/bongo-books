@@ -137,7 +137,9 @@ exports.getCheckout = async (req, res, next) => {
 			return res.status(404).redirect('/user/cart');
 		}
 		const cart = await req.user.getCart();
-		const books = await cart.getBooks();
+		const books = await cart.getBooks({
+			include: [BookImage, Author, Publication],
+		});
 		books.forEach((book) => {
 			total += book.price * book.cartItem.quantity;
 		});
@@ -252,7 +254,7 @@ exports.getOrders = async (req, res, next) => {
 				include: [BookImage, Author, Publication],
 			},
 		});
-
+		console.log(orders[0].books[0]);
 		res.status(200).render('user/orders', {
 			pageTitle: 'Your orders',
 			path: '/user/orders',
