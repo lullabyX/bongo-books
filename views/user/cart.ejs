@@ -1,13 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title><%= pageTitle %></title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="css/style.css" rel="stylesheet">
-    </head>
-    <body>
-    <h1>Cart will be shown herer!</h1>
-    <a href="/user/checkout/shipping">Checkout</a>
-    </body>
+
+<head>
+  <title>
+    <%= pageTitle %>
+  </title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <%- include('../includes/styles.ejs') %>
+</head>
+
+<body>
+  <%- include('../includes/navbar.ejs') %>
+    <h1 align="center">Following items are in your cart!</h1>
+    <div class="ui placeholder segment"  id="cart" style="width: 750px; margin: auto">
+      <div class="ui internally celled grid" style="border: 1px solid; margin: auto">
+        <% let total=0; %>
+          <% for( let book of books ) { %>
+            <div class="row">
+              <div class="three wide column">
+                <img src="<%= book.bookImages[0].imageUrl %> " />
+                <% console.dir(book.cartItem) %>
+              </div>
+              <div class="nine wide column">
+                <div class="ui header">
+                  <%= book.title %>
+                </div>
+              </div>
+              <div class="four wide column">
+                <p>Quantity: <%= book.cartItem.quantity %>
+                </p>
+                <p>Per unit price: <%= book.price %>
+                </p>
+                <% let subtotal=book.price * book.cartItem.quantity; total +=subtotal; %>
+                  <p>Subtotal: <%= subtotal %>
+                  </p>
+              </div>
+              <button class="ui button" onclick="cartDeleteItem('<%= book.id %>', '<%= subtotal %>')">Delete item</button>
+            </div>
+            <% } %>
+      </div>
+      <h2 id="total" style="
+          border: 1px solid;
+          height: 50px;
+          line-height: 50px;
+          text-align: center;
+        ">
+        Total price: <%= total %>
+      </h2>
+
+      <a style="width: 750px;" href="/user/checkout/shipping">
+        <button class="ui button">Checkout</button>
+      </a>
+    </div>
+
+</body>
+
+<script>
+  function cartDeleteItem(bookId, subtotal) {
+
+    var encodedKey = encodeURIComponent('bookId');
+    var encodedValue = encodeURIComponent(bookId);
+    var data = encodedKey + '=' + encodedValue;
+    fetch('/user/cart-delete-item', {
+      method: 'POST',
+      headers: {
+        'csrf-token': '<%= csrfToken %>',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: data,
+    })
+      .then(result => {
+        console.log(result)
+        return JSON.stringify(result);
+
+      })
+      .then(data => {
+        console.log(data);
+        $("#cart").load(" #cart > *");
+        total -= subtotal;
+        //$("#total").load(" #total > *");
+        // //productElement.parentNode.removeChild(productElement);
+        // var card_id = 'card_' + bookId;
+        // console.log(card_id);
+        // var obj = document.getElementById(card_id);
+        // if (obj != null) {
+        //   obj.remove();
+        // }
+
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  }
+
+
+</script>
+
 </html>

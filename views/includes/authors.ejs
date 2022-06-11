@@ -1,0 +1,47 @@
+<main>
+  <% if (authors.length> 0) { %>
+
+    <div class="ui middle aligned center aligned grid" style="margin-top: 20px; width: 1100px; margin:auto">
+      <div class="column" style="max-width: 1100px; margin: auto">
+        <div class="ui four cards" style="margin: auto">
+          <% for (let author of authors) { %>
+            <a style="margin: auto" href="/books/author?id=<%= author.id %> ">
+              <div class="card" style="
+              width: 250px;
+              max-height: 450px;
+              margin: auto;
+              margin-bottom: 20px;
+            " id="card_<%= author.id %>">
+                <div class="image" style="margin: auto; margin-top: 8px">
+                  <img style="max-height: 235px; width: 100%" src="<%= author.imageUrl %> " />
+                </div>
+
+                <div class="content" style="align-items: center; text-align: center">
+                  <div class="header">
+                    <a href="/books/author?id=<%= author.id %> ">
+                      <%= author.name %>
+                    </a>
+                  </div>
+                </div>
+
+                <% if (isAdmin) { %>
+                  <div class="extra">
+                    <div class="ui basic green button">
+                      <a href="/admin/edit-author/<%= author.id %>?edit=true">
+                        Edit
+                      </a>
+                    </div>
+                  </div>
+
+                  <% } %>
+              </div>
+            </a>
+            <% } %>
+        </div>
+      </div>
+    </div>
+
+    <% } else { %>
+      <h1>No Authors Found!</h1>
+      <% } %>
+</main>

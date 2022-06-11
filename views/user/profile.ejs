@@ -8,7 +8,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <%- include('../includes/styles.ejs') %>
+
+    <style type="text/css">
+        body>.grid {
+            height: 80%;
+        }
+
+        .ui.label {
+            width: 100px;
+        }
+
+        .ui.labeled.input {
+            height: 40px;
+        }
+    </style>
+
 </head>
+
 
 <body>
     <%- include('../includes/navbar.ejs') %>
@@ -20,15 +36,16 @@
                     <div class="ui internally celled grid">
 
                         <div class="five wide column">
-                            <div class="ui centered card">
-
-                                <!-- <div class="content" style="object-fit: contain;"> -->
+                            <div class="ui centered card" id="avatar">
 
                                 <img style="height: 100%; width: 100%;" src="<%= user.avatar %> ">
-                                <!-- </div> -->
 
 
                             </div>
+
+                            <button class="ui button left floated" onclick="changeAvatar('/user/profile/random-avatar')">Random</button>
+                            <button class="ui button right floated" onclick="changeAvatar('/user/profile/reset-avatar')">Reset</button>
+
                         </div>
                         <div class="eight wide column">
 
@@ -58,7 +75,9 @@
                                 </div>
 
                                 <div class="extra">
+                                    <a href = "/user/profile?edit=true">
                                   <button class="ui button">Edit profile</button>
+                                  </a>
 
                                 </div>
                               </div>
@@ -75,63 +94,48 @@
                     <i class="address card icon"></i>
                     Details
                 </h4>
-                <table class="ui definition table">
-                    <tbody>
-                        <tr>
-                            <td class="three wide column">Username</td>
-                            <td>
-                                <%= user.username %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>First Name</td>
-                            <td>
-                                <%= user.firstName %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Last Name</td>
-                            <td>
-                                <%= user.lastName %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Phone</td>
-                            <td>
-                                <%= user.primaryPhone %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Email</td>
-                            <td>
-                                <%= user.email %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Member Since</td>
-                            <td>
-                                <%= user.createdAt %>
-                            </td>
-                        </tr>
 
+                <% if (edit) { %>
 
+                    <%- include('../includes/edit-profile.ejs') %>
 
-                    </tbody>
+                <% } else { %>
+                    <%- include('../includes/profile.ejs') %>
 
-                </table>
+                <% } %>
             </div>
         </div>
 
-
-
-
-
-
-
-
-
-
+        <% console.dir(user) %>
 
 </body>
+
+<script>
+    function changeAvatar(endpoint) {
+        //console.log(data);
+        fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'csrf-token': '<%= csrfToken %>',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: null,
+        })
+        .then(result => {
+            // window.location.replace('/books');
+            return result;
+        })
+        .then(data => {
+            console.log(data);
+            $("#avatar").load(" #avatar > *");
+            $("#inline-avatar").load(" #inline-avatar > *");
+
+
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    }
+</script>
 
 </html>

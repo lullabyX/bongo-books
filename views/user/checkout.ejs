@@ -1,42 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title><%= pageTitle %></title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-    </head>
-    <body>
+
+<head>
+    <title>
+        <%= pageTitle %>
+    </title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <%- include('../includes/styles.ejs') %>
+</head>
+
+<body>
+    <%- include('../includes/navbar.ejs') %>
     <main>
-            <% if (books.length > 0) { %>
-                <ul>
-                    <% books.forEach(p => { %>
-                        <li class="cart__item">
-                            <h1><%= p.title %></h1>
-                            <h2>Quantity: <%= p.cartItem.quantity %></h2>
-                        </li>
-                    <% }) %>
-                </ul>
-                <hr>
-                <div>
-                    <h2>Total Price: $<%= totalSum %></h2>
+        <% if (books.length> 0) { %>
+
+
+            <div class="ui placeholder segment" id="cart" style="width: 750px; margin: auto; margin-top:20px">
+                <div class="ui internally celled grid" style="border: 1px solid; margin: auto">
+                    <% let total=0; %>
+                        <% for( let book of books ) { %>
+                            <% console.dir(book) %>
+                                <div class="row">
+                                    <div class="three wide column">
+                                        <img src="<%= book.bookImages[0].imageUrl %> " />
+                                        <% console.dir(book.cartItem) %>
+                                    </div>
+                                    <div class="nine wide column">
+                                        <div class="ui header">
+                                            <%= book.title %>
+                                        </div>
+                                    </div>
+                                    <div class="four wide column">
+                                        <p>Quantity: <%= book.cartItem.quantity %>
+                                        </p>
+                                        <p>Per unit price: <%= book.price %>
+                                        </p>
+                                        <% let subtotal=book.price * book.cartItem.quantity; total +=subtotal; %>
+                                            <p>Subtotal: <%= subtotal %>
+                                            </p>
+                                    </div>
+                                </div>
+                        <% } %>
                 </div>
+                <h2 id="total" style="
+                        border: 1px solid;
+                        height: 50px;
+                        line-height: 50px;
+                        text-align: center;
+                      ">
+                    Total price: <%= total %>
+                </h2>
+
+
                 <div>
-                    <button id="order-btn">ORDER</button>
+                    <button class="ui button" id="order-btn">ORDER</button>
                     <script src="https://js.stripe.com/v3/"></script>
                     <script>
                         var stripe = Stripe('<%= publishkey %>');
                         var orderBtn = document.getElementById('order-btn');
-                        orderBtn.addEventListener('click', function() {
+                        orderBtn.addEventListener('click', function () {
                             stripe.redirectToCheckout({
                                 sessionId: '<%= sessionId %>',
                             })
                         });
                     </script>
                 </div>
-                
+            </div>
+
+
+
+
+
+
             <% } else { %>
                 <h1>No Products in Cart!</h1>
-            <% } %>
-        </main>
-    </body>
+                <% } %>
+    </main>
+</body>
+
 </html>

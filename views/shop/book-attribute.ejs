@@ -1,12 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title><%= pageTitle %> </title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="css/style.css" rel="stylesheet">
-    </head>
-    <body>
-    
-    </body>
+	<head>
+		<title><%= pageTitle %></title>
+		<meta charset="UTF-8" />
+		<%- include('../includes/styles.ejs') %>
+	</head>
+
+	<body>
+		<%- include('../includes/navbar.ejs') %>
+
+        <% if (path == '/authors') { %>
+            <%- include('../includes/authors.ejs') %>
+        <% } else if (path == '/publications') { %>
+            <%- include('../includes/publications.ejs') %>
+        <% } else if (path == '/genres') { %>
+            <%- include('../includes/genres.ejs') %>
+        <% } %>
+
+		<%- include('../includes/pagination.ejs') %>
+	</body>
 </html>

@@ -11,37 +11,7 @@ const GenreItem = require('../models/genre-items');
 const { deleteFile, deleteMultipleFiles } = require('../util/filehelper');
 const fs = require('fs');
 const path = require('path');
-
-exports.getBooks = async (req, res, next) => {
-	const page = +req.query.page || 1;
-	let totalBooks;
-	let totalPages;
-	try {
-		const books = await Book.findAndCountAll({
-			offset: (page - 1) * process.env.BOOKS_PER_PAGE,
-			limit: process.env.BOOKS_PER_PAGE,
-			where: { userId: req.user.id },
-		});
-		totalBooks = books.count;
-		totalPages = Math.ceil(totalBooks / process.env.BOOKS_PER_PAGE);
-		res.status(200).render('admin/books', {
-			books: books,
-			pageTitle: 'Admin Books',
-			path: '/admin/books',
-			pagination: {
-				currentPage: page,
-				previousPage: page - 1,
-				nextPage: page + 1,
-				totalPages: totalPages,
-			},
-		});
-	} catch (err) {
-		if (!err.statusCode) {
-			err.statusCode = 500;
-		}
-		next(err);
-	}
-};
+const PendingBookImage = require('../models/pending-book-image');
 
 exports.getAddBook = async (req, res, next) => {
 	try {
@@ -199,7 +169,7 @@ exports.postAddBook = async (req, res, next) => {
 			});
 		}
 
-		res.status(201).redirect('/admin/books');
+		res.status(201).redirect('/user/books');
 	} catch (err) {
 		if (book) {
 			await book.destroy();
@@ -220,9 +190,11 @@ exports.getPendingBooks = async (req, res, next) => {
 		const pendingBooks = await PendingBook.findAndCountAll({
 			offset: (page - 1) * process.env.BOOKS_PER_PAGE,
 			limit: process.env.BOOKS_PER_PAGE,
+			include: [PendingBookImage],
 		});
 		totalBooks = pendingBooks.count;
 		totalPages = Math.ceil(totalBooks / process.env.BOOKS_PER_PAGE);
+		console.log(pendingBooks);
 		res.status(200).render('admin/pending-books', {
 			books: pendingBooks,
 			pageTitle: 'Pending Books',
@@ -243,15 +215,19 @@ exports.getPendingBooks = async (req, res, next) => {
 };
 
 exports.getPendingBook = async (req, res, next) => {
+	const editing = req.query.edit;
 	const pendingBookId = req.params.pendingBookId;
 	try {
-		const pendingBook = await PendingBook.findByPk(pendingBookId);
+		const pendingBook = await PendingBook.findByPk(pendingBookId, {
+			include: [PendingBookImage],
+		});
 		if (!pendingBook) {
 			req.flash('error', 'Book not found in Pending-Books.');
 			await req.session.save();
 			return res.status(404).redirect('/admin/pending-books');
 		}
 		res.status(200).render('admin/edit-book', {
+			edit: editing,
 			book: pendingBook,
 			pageTitle: 'Verifying ' + pendingBook.title,
 			path: '/admin/pending-book',
@@ -419,7 +395,7 @@ exports.postVerifyPendingBook = async (req, res, next) => {
 };
 
 exports.postDeletePendingBook = async (req, res, next) => {
-	const bookId = req.body.pendingBookId;
+	const bookId = req.body.bookId;
 
 	try {
 		const pendingBook = await PendingBook.findByPk(bookId);
@@ -469,7 +445,7 @@ exports.getEditBook = async (req, res, next) => {
 			} else {
 				req.flash('error', 'Unauthorized!');
 				await req.session.save();
-				res.status(404).redirect('/admin/books');
+				res.status(404).redirect('/');
 			}
 		} catch (err) {
 			if (!err.statusCode) {
@@ -483,7 +459,7 @@ exports.getEditBook = async (req, res, next) => {
 };
 
 exports.postEditBook = async (req, res, next) => {
-	const bookId = req.body.bookId;
+	const bookId = req.body.bookId || 0;
 	const updatedTitle = req.body.title;
 	const updatedImages = req.files;
 	const updatedPrice = req.body.price;
@@ -642,7 +618,7 @@ exports.postEditBook = async (req, res, next) => {
 				});
 			}
 
-			res.status(202).redirect('/admin/books');
+			res.status(202).redirect('/user/books');
 		} else {
 			if (updatedImages.length > 0) {
 				updatedImages.forEach((image) => {
@@ -651,7 +627,7 @@ exports.postEditBook = async (req, res, next) => {
 			}
 			req.flash('error', 'Unauthorized!');
 			await req.session.save();
-			res.status(404).redirect('/admin/books');
+			res.status(404).redirect('/user/books');
 		}
 	} catch (err) {
 		if (updatedImages.length > 0) {
@@ -678,7 +654,7 @@ exports.postDeleteBook = async (req, res, next) => {
 		if (!book) {
 			req.flash('error', 'Book not found!');
 			await req.session.save();
-			res.status(404).redirect('/admin/books');
+			res.status(404).redirect('/');
 		} else {
 			const bookImages = await book.getBookImages();
 			if (bookImages.length > 0) {
@@ -834,6 +810,7 @@ exports.postEditAuthor = async (req, res, next) => {
 exports.getAddPublication = async (req, res, next) => {
 	try {
 		res.status(200).render('admin/add-publication', {
+			edit: false,
 			pageTitle: 'Add Publication',
 			path: '/admin/add-publication',
 		});
@@ -967,6 +944,7 @@ exports.postEditPublication = async (req, res, next) => {
 exports.getAddGenre = async (req, res, next) => {
 	try {
 		res.status(200).render('admin/add-genre', {
+			edit: false,
 			pageTitle: 'Genres',
 			path: '/admin/add-genre',
 		});
@@ -1086,6 +1064,27 @@ exports.postEditGenre = async (req, res, next) => {
 		if (image) {
 			deleteFile(image.path);
 		}
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+};
+
+exports.postDeleteReview = async (req, res, next) => {
+	try {
+		const reviewId = req.body.reviewId;
+		const review = Review.findByPk(reviewId);
+		if (!review) {
+			return res.status(404).json({
+				message: 'Review not found',
+			});
+		}
+		await review.destroy();
+		res.status(201).json({
+			message: 'Review deleted',
+		});
+	} catch (err) {
 		if (!err.statusCode) {
 			err.statusCode = 500;
 		}

@@ -1,12 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title><%= pageTitle %>    </title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="css/style.css" rel="stylesheet">
-    </head>
-    <body>
-    
-    </body>
+
+<head>
+  <title>
+    <%= pageTitle %>
+  </title>
+  <meta charset="UTF-8" />
+  <%- include('../includes/styles.ejs') %>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+
+<body>
+  <%- include('../includes/navbar.ejs') %>
+
+    <form class="ui form" style=" margin:auto;margin-top: 10px; width:1100px;justify-content: center;" action="/search" method="get">
+
+
+
+      <!-- <div class="ui middle aligned center aligned grid" style="margin:auto; margin-top: 20px; width: 1100px;"> -->
+        <div class="two fields">
+        <div class="label">
+          Order By:
+          <select name="orderby" class="ui dropdown" id="order-by">
+            <option value="">Order by</option>
+            <option value="title">Title</option>
+            <option value="price">Price</option>
+            <option value="publishDate">Publish Date</option>
+            <option value="createdAt">Creation Date</option>
+            <option value="sold">Sold</option>
+          </select>
+          Order Type:
+          <select name="ordertype" class="ui dropdown" id="order-type">
+            <option value="">Order type</option>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+      </div>
+
+
+
+      <div class="four fields">
+        <div class="field">
+          <label>Author</label>
+          <input type="text" name="author" placeholder="Author">
+        </div>
+        <div class="field">
+          <label>Price Low</label>
+          <input type="text" name="pricelow" placeholder="Price Low">
+        </div>
+        <div class="field">
+          <label>Price High</label>
+          <input type="text" name="pricehigh" placeholder="Price High">
+        </div>
+        <div class="field">
+          <label>Publish Date</label>
+          <input type="text" name="publishdate" placeholder="Publish Date">
+        </div>
+      </div>
+
+      <div class="four fields">
+        <div class="field">
+          <label>Publication</label>
+          <input type="text" name="publication" placeholder="Publication">
+        </div>
+        <div class="field">
+          <label>Tag</label>
+          <input type="text" name="tag" placeholder="Tag">
+        </div>
+        <div class="field">
+          <label>Genre</label>
+          <input type="text" name="genre" placeholder="Genre">
+        </div>
+        <div class="field">
+          <label>Sold</label>
+          <input type="text" name="sold" placeholder="Sold">
+        </div>
+      </div>
+
+      <button class="ui button" style="margin: auto;text-align: center;">Filter</button>
+    </form>
+
+    <main>
+      <% if (books.length> 0) { %>
+
+        <div class="ui middle aligned center aligned grid" style="margin-top: 20px; width:1100px; margin:auto">
+          <div class="column" style="max-width: 1100px; margin: auto">
+            <div class="ui four cards" style="margin: auto">
+              <% for (let book of books) { %>
+
+                <a style="margin:auto" href="/book-detail/<%= book.id %> ">
+                  <div class="card" style="
+                  width: 250px;
+                  height: 450px;
+                  margin: auto;
+                  margin-bottom: 20px;
+                " id="card_<%= book.id %>">
+                    <div class="image" style="margin: auto; margin-top: 8px">
+                      <img style="max-height: 235px; width: 100%" src="<%= book.bookImages[0].imageUrl %> " />
+                    </div>
+
+                    <div class="content" style="align-items: center; text-align: center">
+                      <div class="header">
+                        <a href="/book-detail/<%= book.id %> ">
+                          <%= book.title %>
+                        </a>
+                      </div>
+                      <div class="meta">
+                        <%= book.authors[0].name %><br />
+                      </div>
+                      <div class="description">
+                        <b>Price: <%= book.price %> USD </b>
+                      </div>
+                    </div>
+
+                    <div class="extra">
+                      <!-- <div class="ui bottom attached button"> -->
+                      <!-- <i class="shopping cart icon"></i> -->
+                      <!-- <a href=""> Add to cart </a> -->
+                      <form action="/user/cart" method="post">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                        <input type="hidden" name="bookId" value="<%= book.id %>" />
+                        <button class="ui button" type="submit">Add to cart</button>
+                      </form>
+                      <!-- </div> -->
+                    </div>
+
+                    <% if (isAdmin) { %>
+                      <div class="extra">
+                        <div class="ui two buttons">
+                          <div class="ui basic green button">
+                            <a href="/admin/edit-book/<%= book.id %>?edit=true">
+                              Edit
+                            </a>
+                          </div>
+                          <div class="ui basic red button">
+                            <a onclick="postDeleteBook('/admin/delete-book', '<%= book.id %>', this)">
+                              Delete
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+
+                      <% } %>
+                  </div>
+                </a>
+
+                <% } %>
+            </div>
+          </div>
+        </div>
+
+        <% } else { %>
+          <h1>No Result</h1>
+          <% } %>
+    </main>
+</body>
+
 </html>

@@ -1,0 +1,57 @@
+<footer align="center" style="margin:auto;position: fixed; bottom: 20px; text-align:center;width:100%">
+    <div class="ui buttons">
+        <% if (pagination.currentPage > 1) { %>
+            <a href="<%= path %>?page=1">
+                <button class="ui button"><<</button>
+            </a>
+            <a href="<%= path %>?page=<%= pagination.previousPage %>">
+                <button class="ui button"><</button>
+            </a>
+
+        <% } %>
+
+        <% for( let page=1; page <= 5; page++ ) { %>
+            <% if (page == pagination.currentPage) { %>
+                <% break; %>
+
+            <% } %>
+            <a href="<%= path %>?page=<%= page %>">
+                <button class="ui button"><%= page %></button>
+            </a>
+
+        <% } %>
+
+
+
+        <button class="ui button"><%= pagination.currentPage %> </button>
+
+
+
+        <% for( let page=pagination.totalPages; page <= pagination.totalPages - 5; page-- ) { %>
+            <% if (page == pagination.currentPage) { %>
+                <% break; %>
+
+            <% } %>
+            <a href="<%= path %>?page=<%= page %>">
+                <button class="ui button"><%= page %></button>
+            </a>
+
+        <% } %>
+
+
+
+        <% if (pagination.currentPage < pagination.totalPages) { %>
+            <a href="<%= path %>?page=<%= pagination.nextPage %>">
+                <button class="ui button">></button>
+            </a>
+            <a href="<%= path %>?page=<%= pagination.totalPages %>">
+                <button class="ui button">>></button>
+            </a>
+
+        <% } %>
+    </div>
+
+</footer>
+
+
+

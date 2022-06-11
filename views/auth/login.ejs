@@ -10,13 +10,25 @@
 
     <%- include('../includes/styles.ejs') %>
 
-        <style type="text/css">
+        <style>
             body>
 
-            .ui.stacked.segments:before {
+            .ui.stacked.segments:after {
                 position: relative;
             }
 
+            .ui.stacked.segment:after {
+                position: relative;
+            }
+
+            .ui.message {
+                display: block;
+            }
+
+            .ui.fluid.large.teal.button:hover + .ui.message {
+                display: block;
+
+            }
             .column {
                 max-width: 450px;
             }
@@ -30,7 +42,7 @@
     <%- include('../includes/navbar.ejs') %>
 
         <div class="ui middle aligned center aligned grid" style="height:50%">
-            <div class="column">
+            <div class="column" style="max-width: 450px;">
                 <h2 class="ui teal image header">
                     <div class="content">
                         Login to your account

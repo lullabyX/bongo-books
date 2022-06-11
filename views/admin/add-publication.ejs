@@ -7,9 +7,7 @@
         <%- include('../includes/styles.ejs') %>
 
         <style type="text/css">
-            body>.grid {
-                height: 80%;
-            }
+            body>
 
             .column {
                 max-width: 650px;
@@ -29,22 +27,22 @@
 <body>
     <%- include('../includes/navbar.ejs') %>
 
-        <div class="ui middle aligned center aligned grid">
+        <div class="ui middle aligned center aligned grid" style="height:50%;width:650px;margin:auto">
             <div class=" column">
 
                 <h2 class="ui image header">
                     <div class="content">
-                        Add publication
+                        <% if(edit) { %> Edit Publication <% } else { %> Add Publication <% } %>
                     </div>
                 </h2>
 
-                <form class="ui form" action="/admin/add-publication?_csrf=<%= csrfToken %>" enctype='multipart/form-data' method="post">
+                <form class="ui form" action="<% if(edit) { %>/admin/edit-publication<% } else { %>/admin/add-publication<% } %>?_csrf=<%= csrfToken %>" enctype='multipart/form-data' method="post">
                     <div class="field">
                         <div class="ui labeled input">
                             <div class="ui label">
                                 Name
                             </div>
-                            <input type="text" name="name" placeholder="">
+                            <input type="text" name="name" placeholder="Publication Name" value="<% if (edit) { %><%= publication.name %><% } %>">
                         </div>
                     </div>
 
@@ -63,11 +61,13 @@
                             <div class="ui label">
                                 Description
                             </div>
-                            <textarea type="text" rows="4" name="description" placeholder="Description"></textarea>
+                            <textarea type="text" rows="4" name="description" placeholder="Description"><% if (edit) { %><%= publication.description %><% } %></textarea>
                         </div>
                     </div>
-
-                    <button class="ui button" type="submit">Add publication</button>
+                    <% if (edit) { %>
+                    <input type="hidden" name="id" value="<%= publication.id %>">
+                    <% } %>
+                    <button class="ui button" type="submit"><% if(edit) { %> Edit Publication <% } else { %> Add Publication <% } %></button>
                 </form>
 
             </div>

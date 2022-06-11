@@ -1,0 +1,33 @@
+<div
+            class="ui middle aligned center aligned grid"
+            style="margin-top: 20px; width: 1100px;margin:auto"
+        >
+<div class="label">
+    Order By:
+    <select name="order-by" class="ui dropdown" id="order-by">
+        <option value="">Order by</option>
+        <option value="title">Title</option>
+        <option value="price">Price</option>
+        <option value="publishDate">Publish Date</option>
+        <option value="createdAt">Creation Date</option>
+        <option value="sold">Sold</option>
+    </select>
+    Order Type:
+    <select name="order-type" class="ui dropdown" id="order-type">
+        <option value="">Order type</option>
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+    </select>
+</div>
+<button class="ui button" onclick="filter()">Filter</button>
+</div>
+
+<script>
+    function filter() {
+        let orderBy = document.getElementById('order-by').value;
+        let orderType = document.getElementById('order-type').value;
+        let url = '?orderby=' + orderBy + '&ordertype=' + orderType;
+        console.log(url);
+        location.href = url;
+    }
+</script>

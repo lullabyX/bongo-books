@@ -39,10 +39,8 @@ const PendingBookImage = require('./models/pending-book-image');
 const Rating = require('./models/rating');
 const RatingItem = require('./models/rating-item');
 const Review = require('./models/review');
-const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
-const { format } = require('path');
 
 const app = express();
 
@@ -53,28 +51,39 @@ const accessLogStream = fs.createWriteStream(
 	{ flags: 'a' }
 );
 
-app.use(
-	helmet.contentSecurityPolicy({
-		useDefaults: true,
-		directives: {
-			'img-src': ["'self'", 'https://avatars.dicebear.com'],
-			defaultSrc: [
-				"'self'",
-				"'unsafe-eval'",
-				'https://code.jquery.com/',
-				"'unsafe-inline'",
-				'https://fonts.googleapis.com/',
-			],
-			scriptSrc: [
-				"'self'",
-				"'unsafe-eval'",
-				'https://code.jquery.com/',
-				"'unsafe-inline'",
-			],
-			'style-src': null,
-		},
-	})
-);
+// app.use(
+// 	helmet.contentSecurityPolicy({
+// 		useDefaults: true,
+// 		directives: {
+// 			'img-src': ["'self'", 'https://avatars.dicebear.com'],
+// 			defaultSrc: [
+// 				"'self'",
+// 				"'unsafe-eval'",
+// 				'https://code.jquery.com/',
+// 				"'unsafe-inline'",
+// 				'https://fonts.googleapis.com/',
+// 				'https://js.stripe.com',
+// 				'https://stripe.com',
+// 				'https://edge-js.stripe.com',
+// 				'https://pay.google.com',
+// 				'checkout.stripe.com',
+// 			],
+// 			scriptSrc: [
+// 				"'self'",
+// 				"'unsafe-eval'",
+// 				'https://code.jquery.com/',
+// 				"'unsafe-inline'",
+// 				'https://stripe.com',
+// 				'https://js.stripe.com',
+// 				'https://edge-js.stripe.com',
+// 				'https://pay.google.com',
+// 				'checkout.stripe.com',
+// 			],
+// 			'style-src': null,
+// 			'script-src-attr': ['unsafe-hashes', 'unsafe-inline'],
+// 		},
+// 	})
+// );
 app.use(compression());
 app.use(morgan('combined', { stream: accessLogStream }));
 
@@ -104,15 +113,20 @@ app.use((req, res, next) => {
 		return next();
 	} else {
 		User.findByPk(req.session.user.id)
-			.then((user) => {
+			.then(async (user) => {
 				if (!user) {
 					next();
 				}
+				const cart = await user.getCart();
 				req.user = user;
+				req.user.totalCartItems = cart.totalItems;
 				next();
 			})
 			.catch((err) => {
-				console.log(err);
+				if (!err.statusCode) {
+					err.statusCode = 500;
+				}
+				next(err);
 			});
 	}
 });
@@ -189,7 +203,7 @@ sequelize
 	// .sync({ force: true })
 	.sync()
 	.then((result) => {
-		app.listen(process.env.HOST_PORT);
+		app.listen(process.env.PORT);
 	})
 	.catch((err) => {
 		console.log(err);
