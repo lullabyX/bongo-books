@@ -41,6 +41,7 @@ const RatingItem = require('./models/rating-item');
 const Review = require('./models/review');
 const compression = require('compression');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
@@ -87,9 +88,29 @@ const accessLogStream = fs.createWriteStream(
 app.use(compression());
 app.use(morgan('combined', { stream: accessLogStream }));
 
+// Request Parser
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
+
+// Cookie Parser
+app.use(cookieParser(process.env.COOKIE_SECRET));
+
+// CORS Headers
+app.use((req, res, next) => {
+	res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+	res.setHeader('Access-Control-Allow-Credentials', 'true');
+	res.setHeader(
+		'Access-Control-Allow-Methods',
+		'GET, POST, PUT, PATCH, DELETE'
+	);
+	res.setHeader(
+		'Access-Control-Allow-Headers',
+		'Content-Type, Authorization'
+	);
+	next();
+});
 
 app.use(
 	session({
