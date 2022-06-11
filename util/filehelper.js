@@ -17,7 +17,7 @@ exports.deleteFile = (filePath, cb) => {
 
 exports.deleteMultipleFiles = (files) =>
 {
-	if (files.length > 0) {
+	if (files?.length > 0) {
 		files.forEach((image) => {
 			this.deleteFile(image.path);
 		});

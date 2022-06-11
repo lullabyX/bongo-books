@@ -1,14 +1,15 @@
 exports.notFound = (req, res, next) => {
-	res.status(404).render('404.ejs', {
-		pageTitle: '404 | Not Found',
-		path: '/404',
-	});
+  const error = new Error("Not found");
+  error.statusCode = 404;
+  next(error);
 };
 
 exports.errorHandler = (error, req, res, next) => {
-	console.log(error);
-	res.status(500).render('500.ejs', {
-		pageTitle: '500 | Internal Error',
-		path: '/500',
-	});
+  console.log(error);
+  res.status(error.statusCode || 500).json({
+    error: {
+      message: error.message,
+      details: error.details,
+    },
+  });
 };

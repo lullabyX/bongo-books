@@ -50,12 +50,12 @@ exports.postAddBook = async (req, res, next) => {
 				deleteFile(image.path);
 			});
 		}
-		// return res.status(422).json({
-		// 	message: errors.array(),
-		// });
-		req.flash('error', errors.array());
-		await req.session.save();
-		return res.status(422).redirect('/admin/add-book');
+		const error = new Error('Validation Error');
+		error.statusCode = 422;
+		throw error
+		// req.flash('error', errors.array());
+		// await req.session.save();
+		// return res.status(422).redirect('/admin/add-book');
 	}
 
 	try {
@@ -78,17 +78,18 @@ exports.postAddBook = async (req, res, next) => {
 			const author = await Author.findOne({
 				where: { name: authorName },
 			});
-			if (!author) {
-				// return res.status(404).json({
-				// 	message: `Author ${authorName} is not found in our Database. Add author first.`,
-				// });
-				req.flash(
-					'error',
-					`Author ${authorName} is not found in our Database.`
-				);
-				await req.session.save();
-				deleteMultipleFiles(images);
-				return res.status(422).redirect('/admin/add-book');
+			if (!author)
+			{
+				const error = new Error(`Author ${authorName} is not found in our Database. Add author first.`);
+        error.statusCode = 404;
+        throw error;
+				// req.flash(
+				// 	'error',
+				// 	`Author ${authorName} is not found in our Database.`
+				// );
+				// await req.session.save();
+				// deleteMultipleFiles(images);
+				// return res.status(422).redirect('/admin/add-book');
 			}
 			authors.push(author);
 		}
@@ -98,16 +99,16 @@ exports.postAddBook = async (req, res, next) => {
 				where: { name: genreName },
 			});
 			if (!genre) {
-				// return res.status(404).json({
-				// 	message: `Author ${authorName} is not found in our Database. Add author first.`,
-				// });
-				req.flash(
-					'error',
-					`Genre ${genreName} is not found in our Database.`
-				);
-				await req.session.save();
-				deleteMultipleFiles(images);
-				return res.status(422).redirect('/admin/add-book');
+				const error = new Error(`Genre ${genreName} is not found in our Database. Add author first.`);
+        error.statusCode = 404;
+        throw error;
+				// req.flash(
+				// 	'error',
+				// 	`Genre ${genreName} is not found in our Database.`
+				// );
+				// await req.session.save();
+				// deleteMultipleFiles(images);
+				// return res.status(422).redirect('/admin/add-book');
 			}
 			genres.push(genre);
 		}
@@ -116,16 +117,18 @@ exports.postAddBook = async (req, res, next) => {
 			where: { name: publicationName },
 		});
 		if (!publication) {
-			// return res.status(404).json({
-			// 	message: `Publication ${publicationName} does not exist in our database. Add publication?`,
-			// });
-			req.flash(
-				'error',
-				`Publication ${publicationName} is not found in our Database.`
-			);
-			await req.session.save();
-			deleteMultipleFiles(images);
-			return res.status(422).redirect('/admin/add-book');
+			const error = new Error(
+        `Publication ${publicationName} does not exist in our database. Add publication?`
+      );
+      error.statusCode = 404;
+      throw error;
+			// req.flash(
+			// 	'error',
+			// 	`Publication ${publicationName} is not found in our Database.`
+			// );
+			// await req.session.save();
+			// deleteMultipleFiles(images);
+			// return res.status(422).redirect('/admin/add-book');
 		}
 		book = await req.user.createBook({
 			title: title,
@@ -135,6 +138,7 @@ exports.postAddBook = async (req, res, next) => {
 			description: description,
 			publishDate: publishDate,
 			language: language,
+			publicationId: publication.id
 		});
 		await publication.addBook(book);
 		await book.addAuthors(authors);
@@ -144,7 +148,7 @@ exports.postAddBook = async (req, res, next) => {
 				name: tag,
 			});
 		});
-		if (images.length > 0) {
+		if (images?.length > 0) {
 			images.forEach(async (image) => {
 				const source = path.join(__dirname, '../', image.path);
 				const imagePath = 'images/book/' + book.id;
@@ -169,7 +173,11 @@ exports.postAddBook = async (req, res, next) => {
 			});
 		}
 
-		res.status(201).redirect('/user/books');
+		res.status(201).json({
+			message: 'Book is added to library',
+			book: book
+		})
+		// res.status(201).json('/user/books');
 	} catch (err) {
 		if (book) {
 			await book.destroy();
@@ -255,9 +263,15 @@ exports.postVerifyPendingBook = async (req, res, next) => {
 
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
-		req.flash('error', errors.array());
-		await req.session.save();
-		return res.status(422).redirect(`/admin/pending-book/${pendingBookId}`);
+		// req.flash('error', errors.array());
+		// await req.session.save();
+		// return res.status(422).redirect(`/admin/pending-book/${pendingBookId}`);
+		const error = new Error(
+      "Validation Error"
+    );
+		error.statusCode = 422;
+		error.details = errors.array();
+    throw error;
 	}
 
 	try {
@@ -281,17 +295,19 @@ exports.postVerifyPendingBook = async (req, res, next) => {
 				where: { name: authorName },
 			});
 			if (!author) {
-				// return res.status(404).json({
-				// 	message: `Author ${authorName} is not found in our Database. Add author first.`,
-				// });
-				req.flash(
-					'error',
-					`Author ${authorName} is not found in our Database.`
-				);
-				await req.session.save();
-				return res
-					.status(422)
-					.redirect(`/admin/pending-book/${pendingBookId}`);
+				const error = new Error(
+          `Author ${authorName} is not found in our Database. Add author first.`,
+        );
+        error.statusCode = 404;
+        throw error;
+				// req.flash(
+				// 	'error',
+				// 	`Author ${authorName} is not found in our Database.`
+				// );
+				// await req.session.save();
+				// return res
+				// 	.status(422)
+				// 	.redirect(`/admin/pending-book/${pendingBookId}`);
 			}
 			authors.push(author);
 		}
@@ -301,33 +317,42 @@ exports.postVerifyPendingBook = async (req, res, next) => {
 			const genre = await Genre.findOne({
 				where: { name: genreName },
 			});
-			if (!genre) {
-				// return res.status(404).json({
-				// 	message: `Author ${authorName} is not found in our Database. Add author first.`,
-				// });
-				req.flash(
-					'error',
-					`Genre ${genreName} is not found in our Database.`
-				);
-				await req.session.save();
-				return res
-					.status(422)
-					.redirect(`/admin/pending-book/${pendingBookId}`);
+			if (!genre)
+			{
+				const error = new Error(
+          `Genre ${genreName} is not found in our Database. Add author first.`
+        );
+        error.statusCode = 404;
+        throw error;
+				// req.flash(
+				// 	'error',
+				// 	`Genre ${genreName} is not found in our Database.`
+				// );
+				// await req.session.save();
+				// return res
+				// 	.status(422)
+				// 	.redirect(`/admin/pending-book/${pendingBookId}`);
 			}
 			genres.push(genre);
 		}
 		const publication = await Publication.findOne({
 			where: { name: publicationName },
 		});
-		if (!publication) {
-			req.flash(
-				'error',
-				`publication ${publicationName} is not found in our Database.`
-			);
-			await req.session.save();
-			return res
-				.status(422)
-				.redirect(`/admin/pending-book/${pendingBookId}`);
+		if (!publication)
+		{
+			const error = new Error(
+        `Publication ${publicationName} is not found in our Database.`
+      );
+      error.statusCode = 404;
+      throw error;
+			// req.flash(
+			// 	'error',
+			// 	`publication ${publicationName} is not found in our Database.`
+			// );
+			// await req.session.save();
+			// return res
+			// 	.status(422)
+			// 	.redirect(`/admin/pending-book/${pendingBookId}`);
 		}
 		const pendingBook = await PendingBook.findByPk(pendingBookId);
 		if (!pendingBook) {
@@ -355,7 +380,7 @@ exports.postVerifyPendingBook = async (req, res, next) => {
 				name: tag,
 			});
 		});
-		if (pendingBookImages.length > 0) {
+		if (pendingBookImages?.length > 0) {
 			pendingBookImages.forEach(async (image) => {
 				const source = path.join(__dirname, '../', image.imageUrl);
 				const imagePath = 'images/book/' + book.id;
@@ -379,10 +404,11 @@ exports.postVerifyPendingBook = async (req, res, next) => {
 		await pendingBook.destroy();
 		req.flash('success', `Book ${book.title} is varified and listed.`);
 		await req.session.save();
-		res.status(202).redirect('/admin/pending-books');
-		// res.status(201).json({
-		// 	message: 'success',
-		// });
+		// res.status(202).redirect('/admin/pending-books');
+		res.status(201).json({
+			message: 'book is verified and added to library',
+			book: book
+		});
 	} catch (err) {
 		if (book) {
 			await book.destroy();
