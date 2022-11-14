@@ -121,6 +121,10 @@ exports.postSignup = async (req, res, next) => {
 		}
 
 		emailVerification = {
+			sender: {
+				email: process.env.SENDER_EMAIL,
+				name: process.env.SENDER_NAME
+			},
 			to: [
 				{
 					email: email,
@@ -178,6 +182,10 @@ exports.getVerification = async (req, res, next) => {
 		await req.session.save();
 		res.status(202).redirect('/auth/login');
 		confirmationEmail = {
+			sender: {
+				email: process.env.SENDER_EMAIL,
+				name: process.env.SENDER_NAME
+			},
 			to: [
 				{
 					email: user.email,
@@ -245,6 +253,10 @@ exports.postPasswordReset = async (req, res, next) => {
 		user.resetTokenTimeout = Date.now() + 3600000; // 1 hour
 		await user.save();
 		passwordResetEmail = {
+			sender: {
+				email: process.env.SENDER_EMAIL,
+				name: process.env.SENDER_NAME
+			},
 			to: [
 				{
 					email: email,
